@@ -1,4 +1,16 @@
 import sys
+import subprocess
+import streamlit as st
+
+# Diagnostic information
+st.write(f"Python executable: {sys.executable}")
+st.write(f"Python version: {sys.version}")
+st.write("Installed packages:")
+st.code(subprocess.check_output([sys.executable, "-m", "pip", "list"]).decode("utf-8"))
+
+
+
+import sys
 sys.path.append('src')
 
 import streamlit as st
@@ -10,7 +22,6 @@ from matplotlib.ticker import FuncFormatter
 import plotly.graph_objs as go
 import plotly.express as px
 import plotly.io as pio
-
 
 # Import modules from the appended path
 from fi_functions import *
