@@ -7,3 +7,4 @@ seaborn
 plotly
 matplotlib.pyplot
 pyarrow
+scikit-learn
