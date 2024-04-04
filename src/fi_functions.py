@@ -96,7 +96,7 @@ def summary_short(df):
     tab.loc[:,'nb_missing_values'] = df.isna().sum().values
     tab.loc[:, 'type'] = df.dtypes.values
     
-    return display(tab)
+    return tab
 
 # Convert column names in the DataFrame to lowercase
 def convert_columns_to_lower(df):
@@ -187,24 +187,6 @@ def one_hot_encoding_sklearn(df, columns):
 
     return df
 
-# Encodes multiple categorical columns in the DataFrame using Frequency Encoding.
-def frequency_encode_columns(df, columns):
-    """
-    Encodes multiple categorical columns in the DataFrame using Frequency Encoding.
-
-    Parameters:
-        df (DataFrame): The DataFrame containing the columns to be encoded.
-        columns (list): A list of column names to be frequency encoded.
-
-    Returns:
-        DataFrame: The DataFrame with the frequency encoded columns added.
-    """
-    
-    for col in columns:
-        freq_encoding_dict = df[col].value_counts(normalize=True).to_dict()
-        df[col+'_encoded'] = df[col].map(freq_encoding_dict)
-    return df
-
 
 from sklearn.preprocessing import StandardScaler
 
@@ -234,32 +216,4 @@ def standardize_numerical_columns(df, columns):
 # Specify the columns to be standardized
 # columns_to_standardize = ['Total_Salaries', 'mean_net_salary_hour_overall', ...]  # Add columns here
 # df_standardized = standardize_numerical_columns(df, columns_to_standardize)
-
-
-#################################################FONCTION CALCUL DISTANCE ENTRE 2 VILLES A PARTIR DES COORDONNEES GPS#########################################
-#variables = (latitude1, longitude1, latitude2, longitude2, unit = 'miles' ou 'km')
-from numpy import sin, cos, arccos, pi, round 
-def rad2deg(radians): 
-    degrees = radians * 180 / pi 
-    return degrees 
-
-def deg2rad(degrees): 
-    radians = degrees * pi / 180 
-    return radians 
-
-def getDistanceBetweenPointsNew(latitude1, longitude1, latitude2, longitude2, unit = 'km'): 
-    theta = longitude1 - longitude2 
-    distance = 60 * 1.1515 * rad2deg( 
-        arccos( 
-            (sin(deg2rad(latitude1)) * sin(deg2rad(latitude2))) + 
-            (cos(deg2rad(latitude1)) * cos(deg2rad(latitude2)) * cos(deg2rad(theta))) 
-        ) 
-    ) 
-    
-    if unit == 'miles': 
-        return round(distance, 2) 
-    if unit == 'km': 
-        return round(distance * 1.609344, 2)
-
-
 

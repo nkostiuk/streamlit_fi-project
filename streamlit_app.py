@@ -31,33 +31,34 @@ from fi_functions import *
 def load_data():
 
     # read .csv form Google Drive
-    file_id_entreprise = '1tP5j1NU6cT5kiEypf7ejQKrxNCrD4Cov' # .csv file
-    file_id_salary = '1NLw8ymnnzLONUM1IVrYsH_A7DsqT84df' # .csv file
-    file_id_name_geographic = '1rgltgPmoDDzNT-YWYRvc11isdgmSmeAG' # .csv file
-    file_id_diploma = '11-KEM4rJ2PqxsTn-BxW1pOfJobx6jjuv' # .csv file
+    #file_id_entreprise = '1tP5j1NU6cT5kiEypf7ejQKrxNCrD4Cov' # .csv file
+    #file_id_salary = '1NLw8ymnnzLONUM1IVrYsH_A7DsqT84df' # .csv file
+    #file_id_name_geographic = '1rgltgPmoDDzNT-YWYRvc11isdgmSmeAG' # .csv file
+    #file_id_diploma = '11-KEM4rJ2PqxsTn-BxW1pOfJobx6jjuv' # .csv file
 
    
     # Construct the direct download link
-    download_link_entreprise = f'https://drive.google.com/uc?export=download&id={file_id_entreprise}'
-    download_link_salary = f'https://drive.google.com/uc?export=download&id={file_id_salary}'
-    download_link_name_geographic = f'https://drive.google.com/uc?export=download&id={file_id_name_geographic}'
-    download_link_diploma = f'https://drive.google.com/uc?export=download&id={file_id_diploma}'
+    # download_link_entreprise = f'https://drive.google.com/uc?export=download&id={file_id_entreprise}'
+    # download_link_salary = f'https://drive.google.com/uc?export=download&id={file_id_salary}'
+    # download_link_name_geographic = f'https://drive.google.com/uc?export=download&id={file_id_name_geographic}'
+    # download_link_diploma = f'https://drive.google.com/uc?export=download&id={file_id_diploma}'
 
-    # Read df
-    df_entreprises=pd.read_csv(download_link_entreprise, dtype={'CODGEO': object})     # OK  : from .csv file in google drive
-    df_salary = pd.read_csv(download_link_salary, sep = ';')   # OK  : from .csv file in google drive
-    df_name_geographic=pd.read_csv(download_link_name_geographic, dtype={0: 'object'})   # OK  : from .csv file in google drive
-    df_population=pd.read_parquet('data/population.parquet.gzip')  # OK  : from .csv file in Jupyter
+    # # Read df
+    # df_entreprises=pd.read_csv(download_link_entreprise, dtype={'CODGEO': object})     # OK  : from .csv file in google drive
+    # df_salary = pd.read_csv(download_link_salary, sep = ';')   # OK  : from .csv file in google drive
+    # df_name_geographic=pd.read_csv(download_link_name_geographic, dtype={0: 'object'})   # OK  : from .csv file in google drive
+    # df_population=pd.read_parquet('data/population.parquet.gzip')  # OK  : from .csv file in Jupyter
 
-    df_diploma=pd.read_csv(download_link_diploma, sep=';')     # OK  : from .csv file in google drive
+    # df_diploma=pd.read_csv(download_link_diploma, sep=';')     # OK  : from .csv file in google drive
 
     df_merge = pd.read_parquet('data/df_final_merge.parquet')
 
     df_final_merge2 = pd.read_csv('data/df_final_merge2.csv')
 
-    return df_entreprises, df_salary, df_name_geographic, df_population, df_diploma,df_merge, df_final_merge2
+    # return df_entreprises, df_salary, df_name_geographic, df_population, df_diploma,df_merge, df_final_merge2
+    return df_merge, df_final_merge2
 
-df_entreprises, df_salary, df_name_geographic, df_population, df_diploma, df_merge, df_final_merge2 = load_data()
+df_merge, df_final_merge2 = load_data()
 
 
 st.title("French Industry Project")
@@ -97,24 +98,24 @@ if page == pages[1] :
     for point in bullet_points:
         st.write(f"- {point}")
 
-    if st.checkbox("Afficher la table 'Enterprises' ") :
-        st.dataframe(df_entreprises.head()) 
-        st.write(df_entreprises.shape)
+    # if st.checkbox("Afficher la table 'Enterprises' ") :
+    #     st.dataframe(df_entreprises.head()) 
+    #     st.write(df_entreprises.shape)
 
-    if st.checkbox("Afficher la table 'Salary' ") :  
-        st.dataframe(df_salary.head())
+    # if st.checkbox("Afficher la table 'Salary' ") :  
+    #     st.dataframe(df_salary.head())
     
-    if st.checkbox("Afficher la table 'Population' ") :  
-        st.dataframe(df_population.head())
+    # if st.checkbox("Afficher la table 'Population' ") :  
+    #     st.dataframe(df_population.head())
 
-    if st.checkbox("Afficher la table 'Geography' ") :  
-        st.dataframe(df_name_geographic.head())
+    # if st.checkbox("Afficher la table 'Geography' ") :  
+    #     st.dataframe(df_name_geographic.head())
 
     if st.checkbox("Afficher la table 'Final Merge' ") :  
         st.dataframe(df_final_merge2.head())
     
-    if st.checkbox("Affichez la table sommaire du DataFrame 'Final Merge'") :      
-        st.dataframe(summary(df_final_merge2))
+    # if st.checkbox("Affichez la table sommaire du DataFrame 'Final Merge'") :      
+    #     st.dataframe(summary(df_final_merge2))
 
 
 
