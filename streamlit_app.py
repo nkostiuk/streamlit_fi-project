@@ -1,6 +1,4 @@
-import sys
 import subprocess
-import streamlit as st
 
 # # Diagnostic information
 # st.write(f"Python executable: {sys.executable}")
@@ -20,6 +18,14 @@ from matplotlib.ticker import FuncFormatter
 import plotly.graph_objs as go
 import plotly.express as px
 import plotly.io as pio
+from scipy.cluster.hierarchy import dendrogram, linkage
+import matplotlib.pyplot as plt
+from sklearn.decomposition import PCA
+from sklearn.cluster import KMeans
+from sklearn.manifold import TSNE
+from sklearn.cluster import AgglomerativeClustering
+import umap.umap_ as umap
+import umap
 
 # Import modules from the appended path
 from fi_functions import *
@@ -261,7 +267,7 @@ if page == pages[2] :
         # Graphique pour les hommes
         fig_male = go.Figure()
         fig_male.add_trace(go.Bar(x=top_5_salaries_male['COM_name'], y=top_5_salaries_male['mean_net_salary_hour_male_over_50'], 
-                                name='Hommes', marker_color='blue'))
+                                name='Hommes', marker_color='orange'))
         fig_male.update_layout(
             title='Les 5 villes avec les salaires moyens les plus élevés pour les hommes (50+ ans) en Île-de-France',
             xaxis_title='Noms des villes',
@@ -272,7 +278,7 @@ if page == pages[2] :
         # Graphique pour les femmes
         fig_female = go.Figure()
         fig_female.add_trace(go.Bar(x=top_5_salaries_female['COM_name'], y=top_5_salaries_female['mean_net_salary_hour_female_over_50'], 
-                                    name='Femmes', marker_color='red'))
+                                    name='Femmes', marker_color='purple'))
         fig_female.update_layout(
             title='Les 5 villes avec les salaires moyens les plus élevés pour les femmes (50+ ans) en Île-de-France',
             xaxis_title='Noms des villes',
@@ -320,11 +326,168 @@ if page == pages[2] :
         st.plotly_chart(fig_female)
 
 ## Préparation des données Page
-if page == pages[3] : 
-    st.write("### Préparation des données")
+#if page == pages[3] : 
+#    st.write("### Préparation des données")
 
-if page == pages[4] : 
+#### MODELISATION
+@st.cache_data
+def plot_scatter(data, labels, title='Scatter Plot', x_label='X-axis', y_label='Y-axis', color_map='viridis'):
+    plt.figure(figsize=(10, 4))
+    plt.scatter(data[:, 0], data[:, 1], c=labels, cmap=color_map)
+    plt.xlabel(x_label)
+    plt.ylabel(y_label)
+    plt.title(title)
+    plt.colorbar(label='Cluster')
+    st.pyplot(plt)
+
+
+@st.cache_data
+def plot_dendrogram(data, p=10, color_threshold=150):
+    linked = linkage(data, method='ward')
+
+    plt.figure(figsize=(10, 5))
+    dendrogram(linked, orientation='top', distance_sort='descending', truncate_mode='level', p=p, 
+               color_threshold=color_threshold, show_leaf_counts=True)
+    plt.axhline(y=color_threshold, color='r', linestyle='--')
+    plt.title('Dendrogramme des clusters')
+    plt.xlabel('Index des points de données')
+    plt.ylabel('Distance')
+    st.pyplot(plt)
+
+@st.cache_data
+def clustering_generic(data, n_clusters, method='kmeans', reducer=None, n_components=None, perplexity=None, learning_rate=None, n_iter=None, n_neighbors=None, min_dist=None):
+    if reducer == 'pca' and n_components:
+        pca = PCA(n_components=n_components)
+        data_transformed = pca.fit_transform(data)
+        title_suffix = f'ACP avec {n_components} composantes principales'
+    elif reducer == 'tsne' and n_components:
+        tsne = TSNE(n_components=n_components, perplexity=perplexity, learning_rate=learning_rate, n_iter=n_iter, random_state=42)
+        data_transformed = tsne.fit_transform(data)
+        title_suffix = f'T-SNE (perplexity={perplexity}, learning_rate={learning_rate}, n_iter={n_iter})'
+    elif reducer == 'umap' and n_components:
+        reducer_model = umap.UMAP(n_neighbors=n_neighbors, min_dist=min_dist, n_components=n_components, random_state=42)
+        data_transformed = reducer_model.fit_transform(data)
+        title_suffix = f'UMAP (n_neighbors={n_neighbors}, min_dist={min_dist})'
+    else:
+        data_transformed = data.values
+        title_suffix = 'sans réduction de dimension'
+
+    if method == 'kmeans':
+        clustering = KMeans(n_clusters=n_clusters, random_state=42)
+        clustering_key = f'KMeans {title_suffix}'
+    elif method == 'agglomerative':
+        clustering = AgglomerativeClustering(n_clusters=n_clusters)
+        clustering_key = f'AgglomerativeClustering {title_suffix}'
+    
+    clustering.fit(data_transformed)
+    labels = clustering.labels_
+    df_final_merge2[clustering_key] = labels
+
+    features_num_selected = data.columns
+    cluster_means = df_final_merge2.groupby(clustering_key)[features_num_selected].mean().reset_index()
+
+    st.write(f"Moyennes des caractéristiques par cluster ({title_suffix})")
+    st.dataframe(cluster_means)
+
+    plot_scatter(data_transformed, labels, 
+                 title=f'{method.capitalize()} Clustering (k={n_clusters}) {title_suffix}', 
+                 x_label='Composante principale 1', 
+                 y_label='Composante principale 2')
+
+    clustering_results = {clustering_key: {'data': data_transformed, 'labels': labels}}
+    
+    return clustering_results
+
+
+# Afficher la section de modélisation
+if page == pages[4]:
     st.write("### Modélisation")
+    st.write("""
+    Le clustering est une technique d'analyse de données qui divise un ensemble de données en groupes homogènes appelés clusters.
+
+    En regroupant les départements selon leurs caractéristiques socio-économiques telles que le salaire, le niveau d'éducation (avec ou sans diplôme bac+5) et le type d'entreprise, le clustering nous permet de mettre en lumière à la fois les similarités et les disparités entre les différents groupes.
+
+    Pour tester différentes méthodes de clustering, nous allons utiliser les approches suivantes :
+
+    - K-means clustering sans ACP
+    - K-means clustering après ACP
+    - K-means clustering après T-SNE
+    - AgglomerativeClustering après T-SNE
+    - AgglomerativeClustering après ACP
+    - K-means clustering après UMAP
+
+    Ces différentes méthodes nous permettront de comparer les résultats et de choisir la plus adaptée à notre analyse.
+    """)
+
+    # Afficher df_scaled_df 
+    if st.checkbox("Afficher un aperçu de la table 'Final Merge' standardisée") :  
+        st.dataframe(df_scaled_df.head())
+
+    # Sélecteur pour choisir le modèle de clustering
+    models = [
+        'K-means clustering sans ACP',
+        'K-means clustering après ACP',
+        'K-means clustering après T-SNE',
+        'AgglomerativeClustering après T-SNE',
+        'AgglomerativeClustering après ACP',
+        'K-means clustering après UMAP'
+    ]
+    
+    st.write("#### Sélection du nombre des clusters optimal")
+    plot_dendrogram(df_scaled_df)
+    
+    selected_model = st.selectbox('Choisissez la méthode de clustering à utiliser', models)
+    
+    n_clusters = st.number_input('Nombre de clusters', min_value=2, max_value=10, value=5)
+
+    if 'après ACP' in selected_model or 'T-SNE' in selected_model or 'UMAP' in selected_model:
+        n_components = st.number_input('Nombre de composantes principales', min_value=2, max_value=10, value=2)
+    else:
+        n_components = None
+
+    if 'T-SNE' in selected_model:
+        st.write("#### Paramètres T-SNE")
+        col1, col2, col3 = st.columns(3)
+        with col1:
+            perplexity = st.number_input('Perplexity', min_value=5, max_value=50, value=30)
+        with col2:
+            learning_rate = st.number_input('Learning Rate', min_value=10, max_value=1000, value=200)
+        with col3:
+            n_iter = st.number_input('Number of Iterations', min_value=250, max_value=10000, value=1000)
+    else:
+        perplexity = None
+        learning_rate = None
+        n_iter = None
+
+    if 'UMAP' in selected_model:
+        st.write("#### Paramètres UMAP")
+        col1, col2 = st.columns(2)
+        with col1:
+            n_neighbors = st.number_input('Nombre de Voisins (n_neighbors)', min_value=2, max_value=100, value=15)
+        with col2:
+            min_dist = st.number_input('Distance Minimum (min_dist)', min_value=0.0, max_value=1.0, value=0.1)
+    else:
+        n_neighbors = None
+        min_dist = None
+
+    st.write(f'Le modèle sélectionné est : {selected_model}')
+
+    # Bouton pour lancer le clustering
+    if st.button('Lancer le clustering'):
+        if 'sans ACP' in selected_model:
+            st.write("### Clustering")
+            clustering_results = clustering_generic(df_scaled_df, n_clusters=n_clusters, method='kmeans')
+        elif 'après ACP' in selected_model:
+            method = 'kmeans' if 'K-means' in selected_model else 'agglomerative'
+            st.write("### Clustering")
+            clustering_results = clustering_generic(df_scaled_df, n_clusters=n_clusters, method=method, reducer='pca', n_components=n_components)
+        elif 'après T-SNE' in selected_model:
+            method = 'kmeans' if 'K-means' in selected_model else 'agglomerative'
+            st.write("### Clustering")
+            clustering_results = clustering_generic(df_scaled_df, n_clusters=n_clusters, method=method, reducer='tsne', n_components=n_components, perplexity=perplexity, learning_rate=learning_rate, n_iter=n_iter)
+        elif 'après UMAP' in selected_model:
+            st.write("### Clustering")
+            clustering_results = clustering_generic(df_scaled_df, n_clusters=n_clusters, method='kmeans', reducer='umap', n_components=n_components, n_neighbors=n_neighbors, min_dist=min_dist)
 
 if page == pages[5] : 
     st.write("### Conclusion")
