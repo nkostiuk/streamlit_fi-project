@@ -217,3 +217,18 @@ def standardize_numerical_columns(df, columns):
 # columns_to_standardize = ['Total_Salaries', 'mean_net_salary_hour_overall', ...]  # Add columns here
 # df_standardized = standardize_numerical_columns(df, columns_to_standardize)
 
+
+
+# Function to create HTML for a team member
+def create_team_member(name, photo_url, linkedin_url):
+    return f"""
+    <div style="display: flex; align-items: center; margin-bottom: 15px;">
+        <img src="{photo_url}" style="width: 50px; height: 50px; border-radius: 50%; margin-right: 15px;">
+        <div>
+            <p style="margin: 0; font-weight: bold;">{name}</p>
+            <a href="{linkedin_url}" target="_blank" style="text-decoration: none; color: #0e76a8;">
+                LinkedIn
+            </a>
+        </div>
+    </div>
+    """

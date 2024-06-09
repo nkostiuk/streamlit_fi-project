@@ -2,13 +2,11 @@ import sys
 import subprocess
 import streamlit as st
 
-# Diagnostic information
-st.write(f"Python executable: {sys.executable}")
-st.write(f"Python version: {sys.version}")
-st.write("Installed packages:")
-st.code(subprocess.check_output([sys.executable, "-m", "pip", "list"]).decode("utf-8"))
-
-
+# # Diagnostic information
+# st.write(f"Python executable: {sys.executable}")
+# st.write(f"Python version: {sys.version}")
+# st.write("Installed packages:")
+# st.code(subprocess.check_output([sys.executable, "-m", "pip", "list"]).decode("utf-8"))
 
 import sys
 sys.path.append('src')
@@ -51,72 +49,107 @@ def load_data():
 
     # df_diploma=pd.read_csv(download_link_diploma, sep=';')     # OK  : from .csv file in google drive
 
-    df_merge = pd.read_parquet('data/df_final_merge.parquet')
+    #df_merge = pd.read_parquet('data/df_final_merge.parquet')
 
     df_final_merge2 = pd.read_csv('data/df_final_merge2.csv')
-
+    df_scaled_df = pd.read_csv('data/df_scaled_df.csv')
+    
     # return df_entreprises, df_salary, df_name_geographic, df_population, df_diploma,df_merge, df_final_merge2
-    return df_merge, df_final_merge2
+    return df_final_merge2, df_scaled_df
 
-df_merge, df_final_merge2 = load_data()
+df_final_merge2, df_scaled_df = load_data()
 
 
 st.title("French Industry Project")
+# Add the project logo (Replace 'logo_url' with your logo's URL)
+logo_url = "img/dst-logo.png"
+st.sidebar.image(logo_url)
+
 st.sidebar.title("Sommaire")
 pages=["Contexte et objectifs du projet", "Le Jeu De Données", "Data Vizualization", "Préparation des données" ,"Modélisation", "Conclusion"]
 page=st.sidebar.radio("Sélectionnez une partie :", pages)
 
+# Add a line before the section
+st.sidebar.markdown("---") 
+
+# Adding logo, names, and LinkedIn links with photos
+st.sidebar.markdown("## Project Team")
+
+# Define the function to create the HTML for each team member
+def create_team_member(name, photo_url, linkedin_url):
+    html = f"""
+    <div style="display: flex; align-items: center; margin-bottom: 10px;">
+        <img src="{photo_url}" alt="{name}" style="width:50px; height:50px; border-radius:50%; margin-right:10px;">
+        <div>
+            <h4 style="margin: 0;">{name}</h4>
+            <a href="{linkedin_url}" target="_blank">LinkedIn</a>
+        </div>
+    </div>
+    """
+    return html
+
+# Add team members
+team_members = [
+    {"name": "Nataliia KOSTIUK", "photo_url": "img/Nataliia.jpeg", "linkedin_url": "https://www.linkedin.com/in/nataliia-kostiuk-7334bb62/"},
+    {"name": "Xavier COMTE", "photo_url": "img/Xavier.jpeg", "linkedin_url": "https://www.linkedin.com/in/xaviercompte75/"},
+    {"name": "Maxime CARRION", "photo_url": "img/Maxime.png", "linkedin_url": "https://www.linkedin.com/in/maximecarrion/"}
+]
+
+for member in team_members:
+    # Create a layout with image and text side by side
+    col1, col2 = st.sidebar.columns([1, 4])
+    with col1:
+        st.image(member['photo_url'])
+    with col2:
+        st.markdown(f"**{member['name']}**")
+        st.markdown(f"[LinkedIn]({member['linkedin_url']})")
+
+# Add a line after the section
+st.sidebar.markdown("---")
+
+
 ## Introduction Page 
 if page == pages[0] : 
   st.write("### Introduction")
-  st.write("**Contexte** : L'INSEE, Institut national de la statistique et des études économiques, est l'organisme officiel français chargé de recueillir une variété de données sur le territoire français. Ces données, qu'elles soient démographiques (telles que les naissances, les décès, la densité de la population...) ou économiques (comme les salaires, le nombre d'entreprises par secteur d'activité ou par taille...), offrent une vision complète de la société française. Elles constituent ainsi une ressource précieuse pour analyser et comprendre les dynamiques sociales, économiques et territoriales du pays.")
-  st.write("**Objectifs** : Cette étude vise à comparer les inégalités en France selon plusieurs dimensions. Tout d'abord, nous nous pencherons sur les disparités entre les entreprises, en examinant leur localisation géographique et leur taille. Ensuite, nous nous intéresserons aux inégalités au sein de la population, en analysant les variations de salaires en fonction de différents critères tels que la catégorie d’emploi et la localisation géographique. Enfin, nous concentrerons notre attention sur une grande ville en particulier, afin d'étudier de manière approfondie les inégalités qui peuvent exister à l'échelle locale.")  
+  st.markdown("""
+              #### Contexte  
+              L'INSEE, Institut national de la statistique et des études économiques, est l'organisme officiel français chargé de recueillir une variété de données sur le territoire français. 
+              Ces données, qu'elles soient démographiques (telles que les naissances, les décès, la densité de la population...) ou économiques (comme les salaires, le nombre d'entreprises par secteur d'activité ou par taille...), offrent une vision complète de la société française. Elles constituent ainsi une ressource précieuse pour analyser et comprendre les dynamiques sociales, économiques et territoriales du pays.
+              """)
+  st.markdown("""
+            #### Les objectifs de notre analyse
+            Cette étude vise à comparer les inégalités en France selon plusieurs dimensions. 
+            - Tout d'abord, nous nous pencherons sur les disparités entre les entreprises, en examinant leur **localisation** géographique et leur taille. 
+            - Ensuite, nous nous intéresserons aux inégalités au sein de la population, en analysant les **variations de salaires** en fonction de différents critères tels que la catégorie **d’emploi** et la **localisation** géographique. 
+            - Enfin, nous concentrerons notre attention sur une grande ville en particulier, afin d'étudier de manière approfondie les inégalités qui peuvent exister à l'échelle locale et les problématiques que ces inégalités pourraient provoquer dans les enjeux industriels évoqués précédemment.
+              
+            **Nous répondrons aux problématiques suivantes :**
+            - Comment varie le nombre d’emplois (entreprises) en fonction de la région.
+            - Comment les disparités salariales varient-elles selon le genre et l’âge dans ces différentes régions et d'en comprendre les raisons ? 
+            """)
 
 
 ## Le Jeu De Données Page 
-if page == pages[1] : 
+if page == pages[1]:
     st.write("### Le jeu de données")
-    st.write("Les sources employées pour ce projet proviennent toutes de l’INSEE, Institut national de la statistique et des études économiques. Ce sont donc des données officielles concernant les différents aspects économiques, démographiques et géographiques traités dans ce travail. ")
-    st.write("#### La table 'Enterprises'")
-    st.write(" Cette table present les informations sur le nombre d'entreprises dans chaque ville française classées par taille. Ses colonnes sont :")
+    st.write("Les sources employées pour ce projet proviennent toutes de l’INSEE, Institut national de la statistique et des études économiques. Ce sont donc des données officielles concernant les différents aspects économiques, démographiques et géographiques traités dans ce travail.")
 
-    # Adding a bulleted list
-    bullet_points = [
-        "**CODGEO**: ID géographique de la ville;",
-        "**ET_BE**: Etablissements actifs de l'industrie au 31/12/2021;",
-        "**ET_BE_0sal**: Etablissements actifs de l'industrie sans salarié au 31/12/2021;",
-        "**ET_BE_1_4**: Etablissements actifs de l'industrie de 1 à 4 salariés au 31/12/2021;",
-        "**ET_BE_5_9**: Etablissements actifs de l'industrie de 5 à 9 salariés au 31/12/2021;",
-        "**ET_BE_10_19**: Etablissements actifs de l'industrie de 10 à 19 salariés au 31/12/2021;",
-        "**ET_BE_20_49**: Etablissements actifs de l'industrie de 20 à 49 salariés au 31/12/2021;",
-        "**ET_BE_50_99**: Etablissements actifs de l'industrie de 50 à 99 salariés au 31/12/2021;",
-        "**ET_BE_100_199**: Etablissements actifs de l'industrie de 100 à 199 salariés au 31/12/2021;",
-        "**ET_BE_200_499**: Etablissements actifs de l'industrie de 200 à 499 salariés au 31/12/2021;",
-        "**ET_BE_500P**: Etablissements actifs de l'industrie de 500 salariés ou plus au 31/12/2021;"
-    ]
+    st.markdown("""
+    - La table **'base_etablissement_par_tranche_effectif.csv'** : Informations sur le nombre d'entreprises dans chaque ville française classées par taille.
+    - La table **'entreprises24'** : Informations sur le nombre d'entreprises dans chaque ville française classées par taille (données de 2021).
+    - La table **'name_geographic_information'** : Informations géographiques sur les villes françaises, y compris la latitude et la longitude, ainsi que les codes et noms des régions et départements.
+    - La table **'net_salary_per_town_categories'** : Informations sur les salaires nets moyens par heure dans chaque ville française classées par catégories d'emploi, âge et sexe.
+    - La table **'population'** : Informations démographiques par ville, y compris le niveau géographique, le mode de cohabitation, les catégories d'âge et le sexe.
+    - La table **'diplomes_2020_new'** : Informations sur le nombre de personnes non scolarisées de 15 ans ou plus classées par niveau de diplôme (aucun diplôme, CEP, Bac +5 ou plus).
+    """)
+
+    st.write("#### Afficher les données")
     
-    for point in bullet_points:
-        st.write(f"- {point}")
-
-    # if st.checkbox("Afficher la table 'Enterprises' ") :
-    #     st.dataframe(df_entreprises.head()) 
-    #     st.write(df_entreprises.shape)
-
-    # if st.checkbox("Afficher la table 'Salary' ") :  
-    #     st.dataframe(df_salary.head())
-    
-    # if st.checkbox("Afficher la table 'Population' ") :  
-    #     st.dataframe(df_population.head())
-
-    # if st.checkbox("Afficher la table 'Geography' ") :  
-    #     st.dataframe(df_name_geographic.head())
-
-    if st.checkbox("Afficher la table 'Final Merge' ") :  
+    if st.checkbox("Afficher un aperçu de la table 'Final Merge'") :  
         st.dataframe(df_final_merge2.head())
     
-    # if st.checkbox("Affichez la table sommaire du DataFrame 'Final Merge'") :      
-    #     st.dataframe(summary(df_final_merge2))
-
+    if st.checkbox("Afficher la table sommaire du DataFrame 'Final Merge'") :      
+        st.dataframe(summary(df_final_merge2))
 
 
 ## DataViz Page
@@ -197,9 +230,63 @@ if page == pages[2] :
         )
 
         return fig
-    
+    @st.cache_data
+    def plot_top_5_salaries_idf(df):
+        idf_data = df[df['REG_nom'] == 'Île-de-France']
+        idf_data_sorted = idf_data.sort_values(by='mean_net_salary_hour_overall', ascending=False)
+        top_salaries_unique = idf_data_sorted.drop_duplicates(subset=['mean_net_salary_hour_overall'], keep='first')
+        top_5_salaries = top_salaries_unique.head(5)
+        fig = px.bar(top_5_salaries, x='COM_name', y='mean_net_salary_hour_overall',
+                     title='Les 5 valeurs extrêmes de salaire dans la région Île-de-France',
+                     labels={'COM_name': 'Noms des villes', 'mean_net_salary_hour_overall': 'Salaire'},
+                     color='mean_net_salary_hour_overall',
+                     color_continuous_scale='Blues')
+        fig.update_layout(xaxis_tickangle=45)
+        return fig
+
+    @st.cache_data
+    def plot_top_5_salaries_idf_comparison(df):
+        idf_data = df[df['REG_nom'] == 'Île-de-France']
+        
+        # Salaires des hommes
+        idf_data_sorted_male = idf_data.sort_values(by='mean_net_salary_hour_male_over_50', ascending=False)
+        top_salaries_unique_male = idf_data_sorted_male.drop_duplicates(subset=['mean_net_salary_hour_male_over_50'], keep='first')
+        top_5_salaries_male = top_salaries_unique_male.head(5)
+        
+        # Salaires des femmes
+        idf_data_sorted_female = idf_data.sort_values(by='mean_net_salary_hour_female_over_50', ascending=False)
+        top_salaries_unique_female = idf_data_sorted_female.drop_duplicates(subset=['mean_net_salary_hour_female_over_50'], keep='first')
+        top_5_salaries_female = top_salaries_unique_female.head(5)
+        
+        # Graphique pour les hommes
+        fig_male = go.Figure()
+        fig_male.add_trace(go.Bar(x=top_5_salaries_male['COM_name'], y=top_5_salaries_male['mean_net_salary_hour_male_over_50'], 
+                                name='Hommes', marker_color='blue'))
+        fig_male.update_layout(
+            title='Les 5 villes avec les salaires moyens les plus élevés pour les hommes (50+ ans) en Île-de-France',
+            xaxis_title='Noms des villes',
+            yaxis_title='Salaire moyen',
+            xaxis_tickangle=45
+        )
+        
+        # Graphique pour les femmes
+        fig_female = go.Figure()
+        fig_female.add_trace(go.Bar(x=top_5_salaries_female['COM_name'], y=top_5_salaries_female['mean_net_salary_hour_female_over_50'], 
+                                    name='Femmes', marker_color='red'))
+        fig_female.update_layout(
+            title='Les 5 villes avec les salaires moyens les plus élevés pour les femmes (50+ ans) en Île-de-France',
+            xaxis_title='Noms des villes',
+            yaxis_title='Salaire moyen',
+            xaxis_tickangle=45
+        )
+        
+        return fig_male, fig_female
+
     st.write("### Visualisation des données")
-    choix = ['Salaire moyen par région', 'Entreprises par région', 'Distribution des salaires', 'Salaires moyens par région (50+)', 'Salaires moyens par catégorie et région']
+    
+    choix = ['Salaire moyen par région', 'Entreprises par région', 'Distribution des salaires', 'Salaires moyens par région (50+)', 'Salaires moyens par catégorie et région',  'Top 5 salaires en Île-de-France', 'Top 5 salaires en Île-de-France (50+)']
+   
+
     option = st.selectbox('Choix du graphique', choix)
     st.write('Le graphique choisi est :', option)
 
@@ -208,21 +295,29 @@ if page == pages[2] :
         st.plotly_chart(fig)
 
     elif option == 'Entreprises par région':
-        fig = plot_companies_by_region(df_merge)
+        fig = plot_companies_by_region(df_final_merge2)
         st.plotly_chart(fig)
 
     elif option == 'Distribution des salaires':
-        fig = plot_salary_distribution(df_merge)
+        fig = plot_salary_distribution(df_final_merge2)
         st.plotly_chart(fig)
 
     elif option == 'Salaires moyens par région (50+)':
-        fig = plot_average_salaries_over_50_by_region(df_merge)
+        fig = plot_average_salaries_over_50_by_region(df_final_merge2)
         st.plotly_chart(fig)
 
     elif option == 'Salaires moyens par catégorie et région':
-        fig = plot_average_salaries_by_category_and_region(df_merge)
+        fig = plot_average_salaries_by_category_and_region(df_final_merge2)
         st.plotly_chart(fig)
 
+    elif option == 'Top 5 salaires en Île-de-France':
+        fig = plot_top_5_salaries_idf(df_final_merge2)
+        st.plotly_chart(fig)
+
+    elif option == 'Top 5 salaires en Île-de-France (50+)':
+        fig_male, fig_female = plot_top_5_salaries_idf_comparison(df_final_merge2)
+        st.plotly_chart(fig_male)
+        st.plotly_chart(fig_female)
 
 ## Préparation des données Page
 if page == pages[3] : 
