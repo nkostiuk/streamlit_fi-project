@@ -276,33 +276,60 @@ if page == pages[2] :
     st.write('Le graphique choisi est :', option)
 
     if option == 'Salaire moyen par région':
+        st.write("Voici la répartition des salaires moyens par région en France. Ce graphique montre les variations de salaire moyen entre différentes régions.")
         fig = plot_moyen_salary_by_region(df_final_merge2)
         st.plotly_chart(fig)
+        st.write("On peut observer que la région Île-de-France se distingue par un salaire moyen plus élevé comparé aux autres régions.")
 
     elif option == 'Entreprises par région':
+        st.write("Ce graphique présente le nombre total d'entreprises par région. Il montre où se concentrent la majorité des entreprises en France.")
         fig = plot_companies_by_region(df_final_merge2)
         st.plotly_chart(fig)
+        
+        st.write("L'Île-de-France et la région Auvergne-Rhône-Alpes se distinguent par le nombre élevé d'entreprises, reflétant leur dynamisme économique.")
+
 
     elif option == 'Distribution des salaires':
+        st.write("La distribution des salaires moyens entre les femmes et les hommes de plus de 50 ans dans l'industrie en France est illustrée ici.")
+    
         fig = plot_salary_distribution(df_final_merge2)
         st.plotly_chart(fig)
 
+        st.write("Il est évident que les hommes ont tendance à avoir des salaires plus élevés que les femmes dans cette tranche d'âge.")
+
+
     elif option == 'Salaires moyens par région (50+)':
+        st.write("Ce graphique compare les salaires moyens des hommes et des femmes de plus de 50 ans par région.")
+        
         fig = plot_average_salaries_over_50_by_region(df_final_merge2)
         st.plotly_chart(fig)
+        st.write("On constate des différences significatives de salaire entre les genres dans certaines régions, avec les hommes gagnant généralement plus.")
+
 
     elif option == 'Salaires moyens par catégorie et région':
+        st.write("Voici les salaires moyens par catégorie professionnelle et par région.")
+       
         fig = plot_average_salaries_by_category_and_region(df_final_merge2)
         st.plotly_chart(fig)
+        st.write("Les cadres ont les salaires les plus élevés, suivis par les employés et les travailleurs. Ces différences se reflètent également à travers les régions.")
+
 
     elif option == 'Top 5 salaires en Île-de-France':
+        st.write("Les cinq valeurs extrêmes de salaire dans la région Île-de-France sont présentées ici.")
+       
         fig = plot_top_5_salaries_idf(df_final_merge2)
         st.plotly_chart(fig)
+        st.write("Ces villes se distinguent par leurs salaires élevés, montrant une forte disparité au sein de la région Île-de-France.")
+
 
     elif option == 'Top 5 salaires en Île-de-France (50+)':
+        st.write("Les cinq villes avec les salaires moyens les plus élevés pour les hommes et por les femmes (50+ ans) en Île-de-France.")
+       
         fig_male, fig_female = plot_top_5_salaries_idf_comparison(df_final_merge2)
         st.plotly_chart(fig_male)
         st.plotly_chart(fig_female)
+
+        st.write("Ces graphiques montrent que même parmi les meilleures villes, il existe des disparités salariales entre les hommes et les femmes de plus de 50 ans.")
 
 ## Préparation des données Page
 #if page == pages[3] : 
@@ -429,87 +456,10 @@ def clustering_generic(data, n_clusters, method='kmeans', reducer=None, n_compon
     
     return clustering_results
 
-def generate_popup(dept_name, cluster_num, cluster_means):
-    return f"<b>Department:</b> {dept_name}<br><b>Cluster:</b> {cluster_num}<br><b>Cluster Means:</b> {cluster_means[cluster_num]}"
-
-def plot_cluster_map(data, geojson_path, cluster_column, cluster_colors, legend_html, popup_html_func, cluster_means):
-    # Initialize map
-    m = folium.Map(location=[46.2276, 2.2137], zoom_start=6)
-    
-    # Load GeoJSON data
-    with open(geojson_path, 'r') as f:
-        geojson_data = json.load(f)
-
-    # Iterate through each feature of the GeoJSON and add it to the map
-    for feature in geojson_data['features']:
-        dept_code = feature['properties']['code'] 
-        matching_row = data[data['DEPT_code'] == dept_code]
-        if not matching_row.empty:
-            cluster_num = matching_row.iloc[0][cluster_column]
-            dept_name = matching_row.iloc[0]['DEPT_name']
-            folium.GeoJson(
-                feature,
-                style_function=lambda x, c=cluster_num: {
-                    'fillColor': cluster_colors[c],
-                    'color': 'black',
-                    'weight': 1,
-                    'fillOpacity': 0.7
-                },
-                popup=folium.Popup(popup_html_func(dept_name, cluster_num, cluster_means), max_width=300)
-            ).add_to(m)
-
-    # Add legend
-    m.get_root().html.add_child(folium.Element(legend_html))
-    
-    return m
-
-# Define cluster colors and create the base map
-cluster_colors_acp_optimised = {
-    0: '#EF779F',  # Purple
-    1: '#ff9f00',  # Orange
-    2: '#00a693',  # Green
-    3: '#d62728',  # Red
-    4: '#1180FF', # Blue
-}
-
-# Add a custom legend
-legend_html = """
-<div style="position: fixed; 
-     bottom: 50px; left: 50px; width: 200px; height: 160px; 
-     border:2px solid grey; z-index:9999; font-size:14px; 
-     background:white; padding:10px;">
-     <h4 style="margin:8px;">Cluster Legend</h4>
-     <div style="background:#EF779F;width:10px;height:10px;display:inline-block;"></div> Cluster 0 - Purple<br>
-     <div style="background:#ff9f00;width:10px;height:10px;display:inline-block;"></div> Cluster 1 - Orange<br>
-     <div style="background:#00a693;width:10px;height:10px;display:inline-block;"></div> Cluster 2 - Green<br>
-     <div style="background:#d62728;width:10px;height:10px;display:inline-block;"></div> Cluster 3 - Red<br>
-     <div style="background:#1180FF;width:10px;height:10px;display:inline-block;"></div> Cluster 4 - Blue<br>
-</div>
-"""
-
-
-cluster_means_acp_kmeans_optimised = df_final_merge2.groupby('Cluster-ACP-KMeans-best')[features_num_selected].mean().reset_index()
-
-
 
 geojson_path = 'src/departements-avec-outre-mer.geojson'
 
 
-# Load the geospatial data for France
-@st.cache_data
-def load_geospatial_data():
-    gdf = gpd.read_file(geojson_path)
-    # Reproject to a projected CRS
-    gdf = gdf.to_crs(epsg=3857)
-    # Calculate centroids
-    gdf['longitude'] = gdf.geometry.centroid.x
-    gdf['latitude'] = gdf.geometry.centroid.y
-    # Reproject back to the original geographic CRS
-    gdf = gdf.to_crs(epsg=4326)
-    return gdf
-
-
-gdf = load_geospatial_data()
 
 # Afficher la section de modélisation
 if page == pages[4]:
@@ -601,11 +551,10 @@ if page == pages[4]:
             st.write("### Clustering")
             clustering_results = clustering_generic(df_scaled_df, n_clusters=n_clusters, method='kmeans', reducer='umap', n_components=n_components, n_neighbors=n_neighbors, min_dist=min_dist)
 
-
-        # Afficher les scores de clustering
-        st.write("### Scores de Clustering")
-        scores_df = pd.DataFrame(scores)
-        st.dataframe(scores_df)
+    # Afficher les scores de clustering
+    st.write("### Scores de Clustering")
+    scores_df = pd.DataFrame(scores)
+    st.dataframe(scores_df)
 
 
 if page == pages[5]: 
