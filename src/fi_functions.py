@@ -232,3 +232,8 @@ def create_team_member(name, photo_url, linkedin_url):
         </div>
     </div>
     """
+
+import folium
+import json
+from streamlit_folium import folium_static
+

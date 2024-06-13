@@ -12,6 +12,7 @@ sys.path.append('src')
 import streamlit as st
 import numpy as np
 import pandas as pd
+import geopandas as gpd
 import matplotlib.pyplot as plt
 import seaborn as sns
 from matplotlib.ticker import FuncFormatter
@@ -19,13 +20,16 @@ import plotly.graph_objs as go
 import plotly.express as px
 import plotly.io as pio
 from scipy.cluster.hierarchy import dendrogram, linkage
-import matplotlib.pyplot as plt
 from sklearn.decomposition import PCA
 from sklearn.cluster import KMeans
 from sklearn.manifold import TSNE
 from sklearn.cluster import AgglomerativeClustering
-import umap.umap_ as umap
 import umap
+from sklearn.metrics import calinski_harabasz_score, silhouette_score 
+import folium
+import json
+from streamlit_folium import folium_static
+from folium.plugins import MarkerCluster
 
 # Import modules from the appended path
 from fi_functions import *
@@ -33,41 +37,16 @@ from fi_functions import *
 # Import the data
 @st.cache_data
 def load_data():
-
-    # read .csv form Google Drive
-    #file_id_entreprise = '1tP5j1NU6cT5kiEypf7ejQKrxNCrD4Cov' # .csv file
-    #file_id_salary = '1NLw8ymnnzLONUM1IVrYsH_A7DsqT84df' # .csv file
-    #file_id_name_geographic = '1rgltgPmoDDzNT-YWYRvc11isdgmSmeAG' # .csv file
-    #file_id_diploma = '11-KEM4rJ2PqxsTn-BxW1pOfJobx6jjuv' # .csv file
-
-   
-    # Construct the direct download link
-    # download_link_entreprise = f'https://drive.google.com/uc?export=download&id={file_id_entreprise}'
-    # download_link_salary = f'https://drive.google.com/uc?export=download&id={file_id_salary}'
-    # download_link_name_geographic = f'https://drive.google.com/uc?export=download&id={file_id_name_geographic}'
-    # download_link_diploma = f'https://drive.google.com/uc?export=download&id={file_id_diploma}'
-
-    # # Read df
-    # df_entreprises=pd.read_csv(download_link_entreprise, dtype={'CODGEO': object})     # OK  : from .csv file in google drive
-    # df_salary = pd.read_csv(download_link_salary, sep = ';')   # OK  : from .csv file in google drive
-    # df_name_geographic=pd.read_csv(download_link_name_geographic, dtype={0: 'object'})   # OK  : from .csv file in google drive
-    # df_population=pd.read_parquet('data/population.parquet.gzip')  # OK  : from .csv file in Jupyter
-
-    # df_diploma=pd.read_csv(download_link_diploma, sep=';')     # OK  : from .csv file in google drive
-
-    #df_merge = pd.read_parquet('data/df_final_merge.parquet')
-
     df_final_merge2 = pd.read_csv('data/df_final_merge2.csv')
     df_scaled_df = pd.read_csv('data/df_scaled_df.csv')
     
-    # return df_entreprises, df_salary, df_name_geographic, df_population, df_diploma,df_merge, df_final_merge2
     return df_final_merge2, df_scaled_df
 
 df_final_merge2, df_scaled_df = load_data()
 
-
+###SIDEBAR 
 st.title("French Industry Project")
-# Add the project logo (Replace 'logo_url' with your logo's URL)
+# Add the project logo 
 logo_url = "img/dst-logo.png"
 st.sidebar.image(logo_url)
 
@@ -330,6 +309,32 @@ if page == pages[2] :
 #    st.write("### Préparation des données")
 
 #### MODELISATION
+
+# Global variable to store clustering means
+cluster_means_global = {}
+features_num_selected = ['Total_Salaries', 'nb_auto_entrepreneur',
+       'nb_micro_entreprises', 'nb_small_entreprises', 'nb_medium_entreprises',
+       'nb_large_entreprises','DIST_COM_CL_DEPT', 'DIST_COM_CL_REG',
+       'DIST_COM_PARIS', 'mean_net_salary_hour_overall',
+       'mean_net_salary_hour_executives', 'mean_net_salary_hour_avg_executive',
+       'mean_net_salary_hour_employee', 'mean_net_salary_hour_worker',
+       'mean_net_salary_hour_female', 'mean_net_salary_hour_female_executives',
+       'mean_net_salary_hour_avg_female_executive',
+       'mean_net_salary_hour_female_employee',
+       'mean_net_salary_hour_female_worker', 'mean_net_salary_hour_male',
+       'mean_net_salary_hour_male_executives',
+       'mean_net_salary_hour_avg_male_executive',
+       'mean_net_salary_hour_male_employee',
+       'mean_net_salary_hour_male_worker', 'mean_net_salary_hour_18_25',
+       'mean_net_salary_hour_26_50', 'mean_net_salary_hour_over_50',
+       'mean_net_salary_hour_female_18_25',
+       'mean_net_salary_hour_female_26_50',
+       'mean_net_salary_hour_female_over_50',
+       'mean_net_salary_hour_male_18_25', 'mean_net_salary_hour_male_26_50',
+       'mean_net_salary_hour_male_over_50', 'men_over_15_no_diploma',
+       'men_over_15_bac_plus_5_gratuated', 'women_over_15_no_diploma',
+       'women_over_15_bac_plus_5_gratuated']
+
 @st.cache_data
 def plot_scatter(data, labels, title='Scatter Plot', x_label='X-axis', y_label='Y-axis', color_map='viridis'):
     plt.figure(figsize=(10, 4))
@@ -353,6 +358,30 @@ def plot_dendrogram(data, p=10, color_threshold=150):
     plt.xlabel('Index des points de données')
     plt.ylabel('Distance')
     st.pyplot(plt)
+
+
+# Initialize a dictionary to store the scores
+scores = {
+    'Method': [],
+    'Calinski-Harabasz Index': [],
+    'Silhouette Score': []
+}
+
+@st.cache_data
+# Function to evaluate and store scores
+def evaluate_clustering(method_name, data, labels):
+    ch_score = calinski_harabasz_score(data, labels)
+    silhouette_avg = silhouette_score(data, labels)
+    scores['Method'].append(method_name)
+    scores['Calinski-Harabasz Index'].append(ch_score)
+    scores['Silhouette Score'].append(silhouette_avg)
+
+
+def get_cluster_column_name(method, reducer, n_clusters):
+    if reducer:
+        return f'{method.capitalize()} clustering après {reducer.upper()} Clustering'
+    return f'{method.capitalize()} clustering sans ACP Clustering'
+
 
 @st.cache_data
 def clustering_generic(data, n_clusters, method='kmeans', reducer=None, n_components=None, perplexity=None, learning_rate=None, n_iter=None, n_neighbors=None, min_dist=None):
@@ -383,7 +412,6 @@ def clustering_generic(data, n_clusters, method='kmeans', reducer=None, n_compon
     labels = clustering.labels_
     df_final_merge2[clustering_key] = labels
 
-    features_num_selected = data.columns
     cluster_means = df_final_merge2.groupby(clustering_key)[features_num_selected].mean().reset_index()
 
     st.write(f"Moyennes des caractéristiques par cluster ({title_suffix})")
@@ -394,10 +422,94 @@ def clustering_generic(data, n_clusters, method='kmeans', reducer=None, n_compon
                  x_label='Composante principale 1', 
                  y_label='Composante principale 2')
 
+    # Evaluation du clustering
+    evaluate_clustering(clustering_key, data_transformed, labels)
+    
     clustering_results = {clustering_key: {'data': data_transformed, 'labels': labels}}
     
     return clustering_results
 
+def generate_popup(dept_name, cluster_num, cluster_means):
+    return f"<b>Department:</b> {dept_name}<br><b>Cluster:</b> {cluster_num}<br><b>Cluster Means:</b> {cluster_means[cluster_num]}"
+
+def plot_cluster_map(data, geojson_path, cluster_column, cluster_colors, legend_html, popup_html_func, cluster_means):
+    # Initialize map
+    m = folium.Map(location=[46.2276, 2.2137], zoom_start=6)
+    
+    # Load GeoJSON data
+    with open(geojson_path, 'r') as f:
+        geojson_data = json.load(f)
+
+    # Iterate through each feature of the GeoJSON and add it to the map
+    for feature in geojson_data['features']:
+        dept_code = feature['properties']['code'] 
+        matching_row = data[data['DEPT_code'] == dept_code]
+        if not matching_row.empty:
+            cluster_num = matching_row.iloc[0][cluster_column]
+            dept_name = matching_row.iloc[0]['DEPT_name']
+            folium.GeoJson(
+                feature,
+                style_function=lambda x, c=cluster_num: {
+                    'fillColor': cluster_colors[c],
+                    'color': 'black',
+                    'weight': 1,
+                    'fillOpacity': 0.7
+                },
+                popup=folium.Popup(popup_html_func(dept_name, cluster_num, cluster_means), max_width=300)
+            ).add_to(m)
+
+    # Add legend
+    m.get_root().html.add_child(folium.Element(legend_html))
+    
+    return m
+
+# Define cluster colors and create the base map
+cluster_colors_acp_optimised = {
+    0: '#EF779F',  # Purple
+    1: '#ff9f00',  # Orange
+    2: '#00a693',  # Green
+    3: '#d62728',  # Red
+    4: '#1180FF', # Blue
+}
+
+# Add a custom legend
+legend_html = """
+<div style="position: fixed; 
+     bottom: 50px; left: 50px; width: 200px; height: 160px; 
+     border:2px solid grey; z-index:9999; font-size:14px; 
+     background:white; padding:10px;">
+     <h4 style="margin:8px;">Cluster Legend</h4>
+     <div style="background:#EF779F;width:10px;height:10px;display:inline-block;"></div> Cluster 0 - Purple<br>
+     <div style="background:#ff9f00;width:10px;height:10px;display:inline-block;"></div> Cluster 1 - Orange<br>
+     <div style="background:#00a693;width:10px;height:10px;display:inline-block;"></div> Cluster 2 - Green<br>
+     <div style="background:#d62728;width:10px;height:10px;display:inline-block;"></div> Cluster 3 - Red<br>
+     <div style="background:#1180FF;width:10px;height:10px;display:inline-block;"></div> Cluster 4 - Blue<br>
+</div>
+"""
+
+
+cluster_means_acp_kmeans_optimised = df_final_merge2.groupby('Cluster-ACP-KMeans-best')[features_num_selected].mean().reset_index()
+
+
+
+geojson_path = 'src/departements-avec-outre-mer.geojson'
+
+
+# Load the geospatial data for France
+@st.cache_data
+def load_geospatial_data():
+    gdf = gpd.read_file(geojson_path)
+    # Reproject to a projected CRS
+    gdf = gdf.to_crs(epsg=3857)
+    # Calculate centroids
+    gdf['longitude'] = gdf.geometry.centroid.x
+    gdf['latitude'] = gdf.geometry.centroid.y
+    # Reproject back to the original geographic CRS
+    gdf = gdf.to_crs(epsg=4326)
+    return gdf
+
+
+gdf = load_geospatial_data()
 
 # Afficher la section de modélisation
 if page == pages[4]:
@@ -489,5 +601,12 @@ if page == pages[4]:
             st.write("### Clustering")
             clustering_results = clustering_generic(df_scaled_df, n_clusters=n_clusters, method='kmeans', reducer='umap', n_components=n_components, n_neighbors=n_neighbors, min_dist=min_dist)
 
-if page == pages[5] : 
+
+        # Afficher les scores de clustering
+        st.write("### Scores de Clustering")
+        scores_df = pd.DataFrame(scores)
+        st.dataframe(scores_df)
+
+
+if page == pages[5]: 
     st.write("### Conclusion")
