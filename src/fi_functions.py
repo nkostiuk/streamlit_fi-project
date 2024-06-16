@@ -250,7 +250,7 @@ def load_data():
 
 @st.cache_data
 def plot_moyen_salary_by_region(df):
-    fig = px.box(df, x='REG_nom', y='mean_net_salary_hour_overall', title='Salaire moyen par région', labels={'REG_nom': 'Région', 'mean_net_salary_hour_overall': 'Salaire Moyen'})
+    fig = px.box(df, x='REG_nom', y='mean_net_salary_hour_overall', title='Salaire net moyen par heure par région', labels={'REG_nom': 'Région', 'mean_net_salary_hour_overall': 'Salaire Net Moyen Par Heure'})
     fig.update_layout(xaxis_tickangle=-45)
     return fig
 
@@ -272,7 +272,7 @@ def plot_salary_distribution(df):
     fig = go.Figure()
     fig.add_trace(go.Histogram(x=df['mean_net_salary_hour_female_over_50'], histnorm='percent', name='Femmes', marker_color='purple', opacity=0.6))
     fig.add_trace(go.Histogram(x=df['mean_net_salary_hour_male_over_50'], histnorm='percent', name='Hommes', marker_color='orange', opacity=0.6))
-    fig.update_layout(barmode='overlay', title='Distribution des salaires moyens entre femmes et hommes de plus de 50 ans dans l\'industrie en France', xaxis_title='Salaire Moyen', yaxis_title='Pourcentage', bargap=0.1)
+    fig.update_layout(barmode='overlay', title='Distribution des salaires net moyens par heure entre femmes et hommes de plus de 50 ans dans l\'industrie en France', xaxis_title='Salaire Net Moyen Par Heure', yaxis_title='Pourcentage', bargap=0.1)
     fig.update_traces(opacity=0.75)
     fig.update_layout(legend=dict(orientation='h', yanchor='bottom', y=1.02, xanchor='right', x=1))
     return fig
@@ -283,7 +283,7 @@ def plot_average_salaries_over_50_by_region(df):
     fig = go.Figure()
     fig.add_trace(go.Bar(x=df_region_salary['REG_nom'], y=df_region_salary['mean_net_salary_hour_female_over_50'], name='Femmes', marker_color='purple'))
     fig.add_trace(go.Bar(x=df_region_salary['REG_nom'], y=df_region_salary['mean_net_salary_hour_male_over_50'], name='Hommes', marker_color='orange'))
-    fig.update_layout(barmode='group', title='Salaires des femmes et des hommes de plus de 50 ans par région', xaxis_title='Région', yaxis_title='Salaire Moyen')
+    fig.update_layout(barmode='group', title='Salaires net moyens par heure des femmes et des hommes de plus de 50 ans par région', xaxis_title='Région', yaxis_title='Salaire Net Moyen Par Heure')
     return fig
 
 @st.cache_data
@@ -303,13 +303,31 @@ def plot_average_salaries_by_category_and_region(df):
     fig.add_trace(go.Bar(x=agg_df['REG_nom'], y=agg_df['mean_net_salary_hour_employee'], name='Salaire net moyen par heure pour l\'employé', marker_color='orange'))
     fig.add_trace(go.Bar(x=agg_df['REG_nom'], y=agg_df['mean_net_salary_hour_worker'], name='Salaire net moyen par heure pour le travailleur', marker_color='purple'))
 
+    # Ajouter la ligne horizontale pour le SMIC
+    fig.add_hline(y=10, line=dict(color="black", width=3), annotation_text="SMIC", annotation_position="top right")
+
+
     fig.update_layout(
         title='Salaires moyens par catégorie et région',
         xaxis_title='Région',
-        yaxis_title='Salaire moyen',
+        yaxis_title='Salaire net moyen par heure',
         xaxis_tickangle=-45,
         barmode='group',
-        legend_title='Catégorie'
+        legend_title='Catégorie',
+        annotations=[dict(
+            x=0.5,
+            y=10,
+            xref='paper',
+            yref='y',
+            text='SMIC',
+            showarrow=False,
+            font=dict(
+                size=12,
+                color="black"
+            ),
+            bgcolor="white",
+            opacity=0.8
+        )]
     )
 
     return fig
@@ -322,7 +340,7 @@ def plot_top_5_salaries_idf(df):
     top_5_salaries = top_salaries_unique.head(5)
     fig = px.bar(top_5_salaries, x='COM_name', y='mean_net_salary_hour_overall',
                     title='Les 5 valeurs extrêmes de salaire dans la région Île-de-France',
-                    labels={'COM_name': 'Noms des villes', 'mean_net_salary_hour_overall': 'Salaire'},
+                    labels={'COM_name': 'Noms des villes', 'mean_net_salary_hour_overall': 'Salaire Net Moyen Par Heure'},
                     color='mean_net_salary_hour_overall',
                     color_continuous_scale='Blues')
     fig.update_layout(xaxis_tickangle=45)
@@ -346,7 +364,7 @@ def plot_top_5_salaries_idf_comparison(df):
     fig_male.update_layout(
         title='Les 5 villes avec les salaires moyens les plus élevés pour les hommes (50+ ans) en Île-de-France',
         xaxis_title='Noms des villes',
-        yaxis_title='Salaire moyen',
+        yaxis_title='Salaire net moyen par heure',
         xaxis_tickangle=45
     )
     
@@ -354,9 +372,9 @@ def plot_top_5_salaries_idf_comparison(df):
     fig_female.add_trace(go.Bar(x=top_5_salaries_female['COM_name'], y=top_5_salaries_female['mean_net_salary_hour_female_over_50'], 
                                 name='Femmes', marker_color='purple'))
     fig_female.update_layout(
-        title='Les 5 villes avec les salaires moyens les plus élevés pour les femmes (50+ ans) en Île-de-France',
+        title='Les 5 villes avec les salaires moyens par heure les plus élevés pour les femmes (50+ ans) en Île-de-France',
         xaxis_title='Noms des villes',
-        yaxis_title='Salaire moyen',
+        yaxis_title='Salaire net moyen par heure',
         xaxis_tickangle=45
     )
     

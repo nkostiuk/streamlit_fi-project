@@ -92,7 +92,7 @@ if page == pages[0] :
             - Enfin, nous concentrerons notre attention sur une grande ville en particulier, afin d'étudier de manière approfondie les inégalités qui peuvent exister à l'échelle locale et les problématiques que ces inégalités pourraient provoquer dans les enjeux industriels évoqués précédemment.
               
             **Nous répondrons aux problématiques suivantes :**
-            - Comment varie le nombre d’emplois (entreprises) en fonction de la région.
+            - Comment varie le nombre d’entreprises en fonction de la région.
             - Comment les disparités salariales varient-elles selon le genre et l’âge dans ces différentes régions et d'en comprendre les raisons ? 
             """)
 
@@ -139,10 +139,10 @@ if page == pages[2] :
     st.write('Le graphique choisi est :', option)
 
     if option == 'Salaire moyen par région':
-        st.write("Voici la répartition des salaires moyens par région en France. Ce graphique montre les variations de salaire moyen entre différentes régions.")
+        st.write("Voici la répartition des salaires net moyens par heure par région en France. Ce graphique montre les variations de salaire moyen entre différentes régions.")
         fig = plot_moyen_salary_by_region(df_final_merge2)
         st.plotly_chart(fig)
-        st.write("On peut observer que la région Île-de-France se distingue par un salaire moyen plus élevé comparé aux autres régions.")
+        st.write("On peut observer que la région Île-de-France se distingue par un salaire net moyen par heure plus élevé comparé aux autres régions.")
 
     elif option == 'Entreprises par région':
         st.write("Ce graphique présente le nombre total d'entreprises par région. Il montre où se concentrent la majorité des entreprises en France.")
@@ -151,31 +151,31 @@ if page == pages[2] :
         st.write("L'Île-de-France et la région Auvergne-Rhône-Alpes se distinguent par le nombre élevé d'entreprises, reflétant leur dynamisme économique.")
 
     elif option == 'Distribution des salaires':
-        st.write("La distribution des salaires moyens entre les femmes et les hommes de plus de 50 ans dans l'industrie en France est illustrée ici.")
+        st.write("La distribution des salaires net moyens par heure entre les femmes et les hommes de plus de 50 ans dans l'industrie en France est illustrée ici.")
         fig = plot_salary_distribution(df_final_merge2)
         st.plotly_chart(fig)
         st.write("Il est évident que les hommes ont tendance à avoir des salaires plus élevés que les femmes dans cette tranche d'âge.")
 
     elif option == 'Salaires moyens par région (50+)':
-        st.write("Ce graphique compare les salaires moyens des hommes et des femmes de plus de 50 ans par région.")
+        st.write("Ce graphique compare les salaires net moyens par heure des hommes et des femmes de plus de 50 ans par région.")
         fig = plot_average_salaries_over_50_by_region(df_final_merge2)
         st.plotly_chart(fig)
         st.write("On constate des différences significatives de salaire entre les genres dans certaines régions, avec les hommes gagnant généralement plus.")
 
     elif option == 'Salaires moyens par catégorie et région':
-        st.write("Voici les salaires moyens par catégorie professionnelle et par région.")
+        st.write("Voici les salaires net moyens par heure par catégorie professionnelle et par région.")
         fig = plot_average_salaries_by_category_and_region(df_final_merge2)
         st.plotly_chart(fig)
         st.write("Les cadres ont les salaires les plus élevés, suivis par les employés et les travailleurs. Ces différences se reflètent également à travers les régions.")
 
     elif option == 'Top 5 salaires en Île-de-France':
-        st.write("Les cinq valeurs extrêmes de salaire dans la région Île-de-France sont présentées ici.")
+        st.write("Les cinq valeurs extrêmes de salaire net moyen par heure dans la région Île-de-France sont présentées ici.")
         fig = plot_top_5_salaries_idf(df_final_merge2)
         st.plotly_chart(fig)
         st.write("Ces villes se distinguent par leurs salaires élevés, montrant une forte disparité au sein de la région Île-de-France.")
 
     elif option == 'Top 5 salaires en Île-de-France (50+)':
-        st.write("Les cinq villes avec les salaires moyens les plus élevés pour les hommes et pour les femmes (50+ ans) en Île-de-France.")
+        st.write("Les cinq villes avec les salaires net moyens par heure les plus élevés pour les hommes et pour les femmes (50+ ans) en Île-de-France.")
         fig_male, fig_female = plot_top_5_salaries_idf_comparison(df_final_merge2)
         st.plotly_chart(fig_male)
         st.plotly_chart(fig_female)
