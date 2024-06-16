@@ -116,8 +116,8 @@ if page == pages[1]:
     if st.checkbox("Afficher un aperçu de la table 'Final Merge'") :  
         st.dataframe(df_final_merge2.head())
     
-    if st.checkbox("Afficher la table sommaire du DataFrame 'Final Merge'") :      
-        st.dataframe(summary(df_final_merge2))
+    # if st.checkbox("Afficher la table sommaire du DataFrame 'Final Merge'") :      
+    #     st.dataframe(summary(df_final_merge2))
 
 
 ## DataViz Page
@@ -179,14 +179,241 @@ if page == pages[2] :
         fig_male, fig_female = plot_top_5_salaries_idf_comparison(df_final_merge2)
         st.plotly_chart(fig_male)
         st.plotly_chart(fig_female)
-        st.write("Ces graphiques montrent que même parmi les meilleures villes, il existe des disparités salariales entre les hommes et les femmes de plus de 50 ans.")
+        st.write("Ces graphiques montrent que même parmi les villes où les salaires sont les meilleurs, il existe des disparités salariales entre les hommes et les femmes de plus de 50 ans.")
+
 
 
 ## Préparation des données Page
-#if page == pages[3] : 
-#    st.write("### Préparation des données")
+if page == pages[3]:
+    # Example of the column renaming code
+    column_renaming_code = """
+    # Renommage des colonnes pour cohérence
+    df_final_merge2.rename(columns={
+        'SNHM20': 'mean_net_salary_hour_overall',
+        'SNHMC20': 'mean_net_salary_hour_executives',
+        'SNHMP20': 'mean_net_salary_hour_avg_executive',
+        'SNHME20': 'mean_net_salary_hour_employee',
+        'SNHMO20': 'mean_net_salary_hour_worker',
+        'SNHMF20': 'mean_net_salary_hour_female',
+        'SNHMFC20': 'mean_net_salary_hour_female_executives',
+        'SNHMFP20': 'mean_net_salary_hour_avg_female_executive',
+        'SNHMFE20': 'mean_net_salary_hour_female_employee',
+        'SNHMFO20': 'mean_net_salary_hour_female_worker',
+        'SNHMH20': 'mean_net_salary_hour_male',
+        'SNHMHC20': 'mean_net_salary_hour_male_executives',
+        'SNHMHP20': 'mean_net_salary_hour_avg_male_executive',
+        'SNHMHE20': 'mean_net_salary_hour_male_employee',
+        'SNHMHO20': 'mean_net_salary_hour_male_worker',
+        'SNHM1820': 'mean_net_salary_hour_18_25',
+        'SNHM2620': 'mean_net_salary_hour_26_50',
+        'SNHM5020': 'mean_net_salary_hour_over_50',
+        'SNHMF1820': 'mean_net_salary_hour_female_18_25',
+        'SNHMF2620': 'mean_net_salary_hour_female_26_50',
+        'SNHMF5020': 'mean_net_salary_hour_female_over_50',
+        'SNHMH1820': 'mean_net_salary_hour_male_18_25',
+        'SNHMH2620': 'mean_net_salary_hour_male_26_50',
+        'SNHMH5020': 'mean_net_salary_hour_male_over_50',
+        'DEPT_nom': 'DEPT_name',
+        'P20_HNSCOL15P_DIPLMIN': 'men_over_15_no_diploma',
+        'P20_HNSCOL15P_SUP5': 'men_over_15_bac_plus_5_graduated',
+        'P20_FNSCOL15P_DIPLMIN': 'women_over_15_no_diploma',
+        'P20_FNSCOL15P_SUP5': 'women_over_15_bac_plus_5_graduated'
+    }, inplace=True)
+    """
 
-#### MODELISATION
+    st.write("### Préparation des données")
+
+    st.write("""
+    La préparation des données est une étape cruciale dans tout projet d'analyse de données. Elle consiste à nettoyer, transformer et standardiser les données brutes pour les rendre exploitables par les algorithmes de modélisation et d'analyse. 
+    
+    Dans notre projet, nous avons suivi les étapes suivantes pour préparer nos données:
+
+    **1. Nettoyage des données:**
+    - **Gestion des valeurs manquantes:** Nous avons traité les valeurs manquantes dans les colonnes de latitude et longitude en recherchant et en intégrant des coordonnées GPS supplémentaires pour enrichir notre dataset.
+    - **Suppression des doublons:** Nous avons supprimé les doublons pour assurer l'unicité de nos enregistrements.
+    - **Correction des types de données:** Nous avons corrigé les types de données pour certaines colonnes, en particulier la latitude et la longitude, en remplaçant les virgules par des points et en les convertissant en type float.
+             
+    """)
+
+    st.markdown("""
+    **Suppression des doublons:**
+    ```python
+    # Suppression des doublons
+    df_final_merge2.drop_duplicates(inplace=True)
+    ```
+
+    **Correction des types de données:**
+    ```python
+    # Correction des types de données
+    df_final_merge2['latitude'] = df_final_merge2['latitude'].str.replace(',', '.').astype(float)
+    df_final_merge2['longitude'] = df_final_merge2['longitude'].str.replace(',', '.').astype(float)
+    ```
+    """)
+
+    st.write("""
+    **2. Transformation des données:**
+    - **Uniformisation des formats (ajout de 0 sur GEOCOD):** Nous avons uniformisé les formats des codes géographiques en ajoutant des zéros au début des valeurs de la colonne CODGEO pour assurer une longueur uniforme.
+    - **Renommage des colonnes (Français/Anglais):** Nous avons renommé les colonnes pour assurer la cohérence et la clarté entre les différents jeux de données, en créant des noms explicites en anglais pour les colonnes initialement en français.
+    """)
+
+
+    st.markdown("""
+    **Uniformisation des formats (ajout de 0 sur GEOCOD):**
+
+    ```python
+    # Convert the specified column to string type and add leading zeros to match the desired length
+    def add_leading_zeros(df, column_name, desired_length):
+        df[column_name] = df[column_name].astype(str)
+        df[column_name] = df[column_name].str.zfill(desired_length)
+
+    # Applying the function
+    add_leading_zeros(df_name_geographic_final,'COM_code_insee', 5)
+    ```
+
+    **Renommage des colonnes (Français/Anglais):**
+    
+    ```python
+    # Renommage des colonnes pour cohérence
+    df_final_merge2.rename(columns={
+        'SNHM20': 'mean_net_salary_hour_overall',
+        'SNHMC20': 'mean_net_salary_hour_executives',
+        'SNHMP20': 'mean_net_salary_hour_avg_executive',
+        'SNHME20': 'mean_net_salary_hour_employee',
+        'SNHMO20': 'mean_net_salary_hour_worker',
+        'SNHMF20': 'mean_net_salary_hour_female',
+        'SNHMFC20': 'mean_net_salary_hour_female_executives',
+        'SNHMFP20': 'mean_net_salary_hour_avg_female_executive',
+        'SNHMFE20': 'mean_net_salary_hour_female_employee',
+        'SNHMFO20': 'mean_net_salary_hour_female_worker',
+        'SNHMH20': 'mean_net_salary_hour_male',
+        'SNHMHC20': 'mean_net_salary_hour_male_executives',
+        'SNHMHP20': 'mean_net_salary_hour_avg_male_executive',
+        'SNHMHE20': 'mean_net_salary_hour_male_employee',
+        'SNHMHO20': 'mean_net_salary_hour_male_worker',
+        'SNHM1820': 'mean_net_salary_hour_18_25',
+        'SNHM2620': 'mean_net_salary_hour_26_50',
+        'SNHM5020': 'mean_net_salary_hour_over_50',
+        'SNHMF1820': 'mean_net_salary_hour_female_18_25',
+        'SNHMF2620': 'mean_net_salary_hour_female_26_50',
+        'SNHMF5020': 'mean_net_salary_hour_female_over_50',
+        'SNHMH1820': 'mean_net_salary_hour_male_18_25',
+        'SNHMH2620': 'mean_net_salary_hour_male_26_50',
+        'SNHMH5020': 'mean_net_salary_hour_male_over_50',
+        'DEPT_nom': 'DEPT_name',
+        'P20_HNSCOL15P_DIPLMIN': 'men_over_15_no_diploma',
+        'P20_HNSCOL15P_SUP5': 'men_over_15_bac_plus_5_graduated',
+        'P20_FNSCOL15P_DIPLMIN': 'women_over_15_no_diploma',
+        'P20_FNSCOL15P_SUP5': 'women_over_15_bac_plus_5_graduated'
+    }, inplace=True)
+    ```
+    """)
+
+
+    st.write("""
+    **3. Enrichissement du dataset:**
+    - Nombre d'entreprises par région
+    - Informations sur le nombre de personnes sans diplôme, ou titulaires d'un CEP, ou d'un diplôme de niveau BAC+5 ou plus
+    """)
+
+    st.markdown("""
+    Nous avons constaté qu'il y avait beaucoup de zéros dans les colonnes suivantes : 'E14TS6', 'E14TS10', 'E14TS20', 'E14TS50', 'E14TS100', 'E14TS200', 'E14TS500'. Pour améliorer cela, nous avons créé de nouvelles colonnes qui catégorisent les données en fonction de tailles d'entreprises plus vastes :
+    
+    ```python
+    # Création de nouvelles colonnes pour les tailles d'entreprises
+    df_final_merge2['nb_micro_entreprises'] = df_final_merge2[['ET_BE_0sal', 'ET_BE_1_4', 'ET_BE_5_9']].sum(axis=1)
+    df_final_merge2['nb_small_entreprises'] = df_final_merge2[['ET_BE_10_19', 'ET_BE_20_49']].sum(axis=1)
+    df_final_merge2['nb_medium_entreprises'] = df_final_merge2[['ET_BE_50_99', 'ET_BE_100_199']].sum(axis=1)
+    df_final_merge2['nb_large_entreprises'] = df_final_merge2[['ET_BE_200_499', 'ET_BE_500P']].sum(axis=1)
+    ```
+    """)
+
+
+    st.write("""
+    **4. Fusion des jeux de données:**
+    - Intégration des différentes sources de données
+    """)
+
+    st.markdown("""
+    Nous avons fusionné les différents jeux de données (entreprises, informations géographiques, salaires, population, diplômes) sur la colonne CODGEO pour créer un dataset complet et intégré.
+    ```python
+    # Fusion des jeux de données sur la colonne CODGEO
+    df_merge1=df_entreprises24.merge(df_name_geographic_final,left_on='CODGEO',right_on='COM_code_insee')
+    df_merge2=df_merge1.merge(df_salary,left_on='CODGEO',right_on='CODGEO')
+    df_merge3=df_merge2.merge(df_population,left_on='CODGEO',right_on='CODGEO')
+    df_merge4=df_merge3.merge(df_diploma,left_on='CODGEO',right_on='CODGEO')
+    ```
+                
+    Après la fusion, nous avons supprimé les colonnes inutilisées avant de procéder à l'apprentissage automatique pour optimiser notre dataset.
+
+    ```python
+    # Suppression des colonnes inutilisées
+    df_final_merge2 = df_final_merge2.drop(columns=['NIVGEO', 'LIBGEO', 'MOCO', 'AGEQ80_17', 'SEXE', 'NB'])  
+    df_final_merge2 = df_final_merge2.drop_duplicates().reset_index(drop=True)
+    ```
+
+    """)
+
+    st.write("""
+    **5. Standardisation des variables numériques:**
+    """)
+
+    st.markdown("""
+    Nous avons standardisé les variables numériques pour les mettre sur une échelle comparable, facilitant ainsi les analyses ultérieures comme le clustering.
+    
+    ```python
+    from sklearn.preprocessing import StandardScaler
+
+    # Sélection des colonnes numériques à standardiser
+    features_num_selected = ['Total_Salaries', 'nb_auto_entrepreneur',
+        'nb_micro_entreprises', 'nb_small_entreprises', 'nb_medium_entreprises',
+        'nb_large_entreprises','DIST_COM_CL_DEPT', 'DIST_COM_CL_REG',
+        'DIST_COM_PARIS', 'mean_net_salary_hour_overall',
+        'mean_net_salary_hour_executives', 'mean_net_salary_hour_avg_executive',
+        'mean_net_salary_hour_employee', 'mean_net_salary_hour_worker',
+        'mean_net_salary_hour_female', 'mean_net_salary_hour_female_executives',
+        'mean_net_salary_hour_avg_female_executive',
+        'mean_net_salary_hour_female_employee',
+        'mean_net_salary_hour_female_worker', 'mean_net_salary_hour_male',
+        'mean_net_salary_hour_male_executives',
+        'mean_net_salary_hour_avg_male_executive',
+        'mean_net_salary_hour_male_employee',
+        'mean_net_salary_hour_male_worker', 'mean_net_salary_hour_18_25',
+        'mean_net_salary_hour_26_50', 'mean_net_salary_hour_over_50',
+        'mean_net_salary_hour_female_18_25',
+        'mean_net_salary_hour_female_26_50',
+        'mean_net_salary_hour_female_over_50',
+        'mean_net_salary_hour_male_18_25', 'mean_net_salary_hour_male_26_50',
+        'mean_net_salary_hour_male_over_50', 'men_over_15_no_diploma',
+        'men_over_15_bac_plus_5_gratuated', 'women_over_15_no_diploma',
+        'women_over_15_bac_plus_5_gratuated']
+
+    sc = StandardScaler()
+    df_selected = df_final_merge2[features_num_selected].reset_index(drop=True) 
+
+    df_selected_scaled = sc.fit_transform(df_selected)
+    df_scaled_df = pd.DataFrame(df_selected_scaled, columns = features_num_selected)
+    ```
+    """)
+
+    st.write("### Résumé et Résultats")
+
+    st.write("#### Résultats du nettoyage et de la transformation des données")
+    st.write("Après le nettoyage et la transformation des données, nous avons obtenu un jeu de données prêt pour le Machine Learning")
+
+    if st.checkbox("Afficher la table sommaire du DataFrame 'Final Merge'"):
+        st.dataframe(summary(df_final_merge2))
+
+    st.write("#### Résultats de la standardisation des données")
+    st.write("Les données standardisées fournissent une base solide pour les méthodes d'analyse avancées telles que le clustering.")
+
+    if st.checkbox("Afficher un aperçu de la table 'Final Merge' standardisée") :  
+        st.dataframe(df_scaled_df.head())
+
+
+    
+
+
+#### MODELISATION ####
 
 
 # Global variable to store clustering means
@@ -275,9 +502,6 @@ def clustering_generic(data, n_clusters, method='kmeans', reducer=None, n_compon
                  title=f'{method.capitalize()} Clustering (k={n_clusters}) {title_suffix}', 
                  x_label='Composante principale 1', 
                  y_label='Composante principale 2')
-
-    # Evaluation du clustering
-    # evaluate_clustering(clustering_key, data_transformed, labels)
     
     clustering_results = {clustering_key: {'data': data_transformed, 'labels': labels}}
     
