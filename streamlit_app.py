@@ -35,17 +35,12 @@ from folium.plugins import MarkerCluster
 from fi_functions import *
 
 # Import the data
-@st.cache_data
-def load_data():
-    df_final_merge2 = pd.read_csv('data/df_final_merge2.csv')
-    df_scaled_df = pd.read_csv('data/df_scaled_df.csv')
-    
-    return df_final_merge2, df_scaled_df
-
 df_final_merge2, df_scaled_df = load_data()
 
-###SIDEBAR 
+
 st.title("French Industry Project")
+
+###SIDEBAR ###
 # Add the project logo 
 logo_url = "img/dst-logo.png"
 st.sidebar.image(logo_url)
@@ -60,18 +55,6 @@ st.sidebar.markdown("---")
 # Adding logo, names, and LinkedIn links with photos
 st.sidebar.markdown("## Project Team")
 
-# Define the function to create the HTML for each team member
-def create_team_member(name, photo_url, linkedin_url):
-    html = f"""
-    <div style="display: flex; align-items: center; margin-bottom: 10px;">
-        <img src="{photo_url}" alt="{name}" style="width:50px; height:50px; border-radius:50%; margin-right:10px;">
-        <div>
-            <h4 style="margin: 0;">{name}</h4>
-            <a href="{linkedin_url}" target="_blank">LinkedIn</a>
-        </div>
-    </div>
-    """
-    return html
 
 # Add team members
 team_members = [
@@ -138,140 +121,20 @@ if page == pages[1]:
 
 
 ## DataViz Page
+## Data Visualization Page 
 if page == pages[2] : 
-    
-    # def plot_median_salary_by_region(df):
-    #     fig = px.box(df, x='REG_nom', y='SNHM20', title='Salaire médian par région', labels={'REG_nom': 'Région', 'SNHM20': 'Salaire Médian'})
-    #     fig.update_layout(xaxis_tickangle=-45)
-    #     return fig
-    
-    @st.cache_data
-    def plot_moyen_salary_by_region(df):
-        fig = px.box(df, x='REG_nom', y='mean_net_salary_hour_overall', title='Salaire moyen par région', labels={'REG_nom': 'Région', 'mean_net_salary_hour_overall': 'Salaire Moyen'})
-        fig.update_layout(xaxis_tickangle=-45)
-        pio.renderers.default = 'svg'  
-        return fig
-
-    @st.cache_data
-    def plot_companies_by_region(df):
-        reg_name_enterprises = df.groupby('REG_nom')['Total_Salaries'].sum().reset_index()
-        reg_name_enterprises_sorted = reg_name_enterprises.sort_values(by='Total_Salaries', ascending=False)
-        fig = px.bar(reg_name_enterprises_sorted, x='REG_nom', y='Total_Salaries',
-                    title='Nombre total d\'entreprises par région',
-                    labels={'REG_nom': 'Nom de la Région', 'Total_Salaries': 'Nombre total d\'entreprises'},
-                    color='Total_Salaries',
-                    color_continuous_scale='viridis')
-        fig.update_layout(xaxis_tickangle=-45, xaxis_title=None, yaxis_title=None)
-        return fig
-
-    @st.cache_data
-    def plot_salary_distribution(df):
-        fig = go.Figure()
-        fig.add_trace(go.Histogram(x=df['mean_net_salary_hour_female_over_50'], histnorm='percent', name='Femmes', marker_color='purple', opacity=0.6))
-        fig.add_trace(go.Histogram(x=df['mean_net_salary_hour_male_over_50'], histnorm='percent', name='Hommes', marker_color='orange', opacity=0.6))
-        fig.update_layout(barmode='overlay', title='Distribution des salaires moyens entre femmes et hommes de plus de 50 ans dans l\'industrie en France', xaxis_title='Salaire Moyen', yaxis_title='Pourcentage', bargap=0.1)
-        fig.update_traces(opacity=0.75)
-        fig.update_layout(legend=dict(orientation='h', yanchor='bottom', y=1.02, xanchor='right', x=1))
-        return fig
-
-    @st.cache_data
-    def plot_average_salaries_over_50_by_region(df):
-        df_region_salary = df.groupby('REG_nom').agg({'mean_net_salary_hour_female_over_50': 'mean', 'mean_net_salary_hour_male_over_50': 'mean'}).reset_index()
-        fig = go.Figure()
-        fig.add_trace(go.Bar(x=df_region_salary['REG_nom'], y=df_region_salary['mean_net_salary_hour_female_over_50'], name='Femmes', marker_color='purple'))
-        fig.add_trace(go.Bar(x=df_region_salary['REG_nom'], y=df_region_salary['mean_net_salary_hour_male_over_50'], name='Hommes', marker_color='orange'))
-        fig.update_layout(barmode='group', title='Salaires des femmes et des hommes de plus de 50 ans par région', xaxis_title='Région', yaxis_title='Salaire Moyen')
-        return fig
-
-    @st.cache_data
-    def plot_average_salaries_by_category_and_region(df):
-        # Aggregate data by region and calculate mean salaries for each category
-        agg_df = df.groupby('REG_nom').agg({
-            'mean_net_salary_hour_overall': 'mean',  # Mean salary per hour
-            'mean_net_salary_hour_executives': 'mean',  # Mean salary per hour for executives
-            'mean_net_salary_hour_avg_executive': 'mean',  # Mean salary per hour for middle management
-            'mean_net_salary_hour_employee': 'mean',  # Mean salary per hour for employees
-            'mean_net_salary_hour_worker': 'mean',  # Mean salary per hour for workers
-        }).reset_index()
-
-        # Create a figure
-        fig = go.Figure()
-
-        # Add bar traces for each category, using the aggregated data
-        fig.add_trace(go.Bar(x=agg_df['REG_nom'], y=agg_df['mean_net_salary_hour_overall'], name='Salaire net moyen par heure', marker_color='blue'))
-        fig.add_trace(go.Bar(x=agg_df['REG_nom'], y=agg_df['mean_net_salary_hour_executives'], name='Salaire net moyen par heure pour les cadres', marker_color='red'))
-        fig.add_trace(go.Bar(x=agg_df['REG_nom'], y=agg_df['mean_net_salary_hour_avg_executive'], name='Salaire net moyen par heure pour un cadre moyen', marker_color='green'))
-        fig.add_trace(go.Bar(x=agg_df['REG_nom'], y=agg_df['mean_net_salary_hour_employee'], name='Salaire net moyen par heure pour l\'employé', marker_color='orange'))
-        fig.add_trace(go.Bar(x=agg_df['REG_nom'], y=agg_df['mean_net_salary_hour_worker'], name='Salaire net moyen par heure pour le travailleur', marker_color='purple'))
-
-        # Update layout
-        fig.update_layout(
-            title='Salaires moyens par catégorie et région',
-            xaxis_title='Région',
-            yaxis_title='Salaire moyen',
-            xaxis_tickangle=-45,
-            barmode='group',
-            legend_title='Catégorie'
-        )
-
-        return fig
-    @st.cache_data
-    def plot_top_5_salaries_idf(df):
-        idf_data = df[df['REG_nom'] == 'Île-de-France']
-        idf_data_sorted = idf_data.sort_values(by='mean_net_salary_hour_overall', ascending=False)
-        top_salaries_unique = idf_data_sorted.drop_duplicates(subset=['mean_net_salary_hour_overall'], keep='first')
-        top_5_salaries = top_salaries_unique.head(5)
-        fig = px.bar(top_5_salaries, x='COM_name', y='mean_net_salary_hour_overall',
-                     title='Les 5 valeurs extrêmes de salaire dans la région Île-de-France',
-                     labels={'COM_name': 'Noms des villes', 'mean_net_salary_hour_overall': 'Salaire'},
-                     color='mean_net_salary_hour_overall',
-                     color_continuous_scale='Blues')
-        fig.update_layout(xaxis_tickangle=45)
-        return fig
-
-    @st.cache_data
-    def plot_top_5_salaries_idf_comparison(df):
-        idf_data = df[df['REG_nom'] == 'Île-de-France']
-        
-        # Salaires des hommes
-        idf_data_sorted_male = idf_data.sort_values(by='mean_net_salary_hour_male_over_50', ascending=False)
-        top_salaries_unique_male = idf_data_sorted_male.drop_duplicates(subset=['mean_net_salary_hour_male_over_50'], keep='first')
-        top_5_salaries_male = top_salaries_unique_male.head(5)
-        
-        # Salaires des femmes
-        idf_data_sorted_female = idf_data.sort_values(by='mean_net_salary_hour_female_over_50', ascending=False)
-        top_salaries_unique_female = idf_data_sorted_female.drop_duplicates(subset=['mean_net_salary_hour_female_over_50'], keep='first')
-        top_5_salaries_female = top_salaries_unique_female.head(5)
-        
-        # Graphique pour les hommes
-        fig_male = go.Figure()
-        fig_male.add_trace(go.Bar(x=top_5_salaries_male['COM_name'], y=top_5_salaries_male['mean_net_salary_hour_male_over_50'], 
-                                name='Hommes', marker_color='orange'))
-        fig_male.update_layout(
-            title='Les 5 villes avec les salaires moyens les plus élevés pour les hommes (50+ ans) en Île-de-France',
-            xaxis_title='Noms des villes',
-            yaxis_title='Salaire moyen',
-            xaxis_tickangle=45
-        )
-        
-        # Graphique pour les femmes
-        fig_female = go.Figure()
-        fig_female.add_trace(go.Bar(x=top_5_salaries_female['COM_name'], y=top_5_salaries_female['mean_net_salary_hour_female_over_50'], 
-                                    name='Femmes', marker_color='purple'))
-        fig_female.update_layout(
-            title='Les 5 villes avec les salaires moyens les plus élevés pour les femmes (50+ ans) en Île-de-France',
-            xaxis_title='Noms des villes',
-            yaxis_title='Salaire moyen',
-            xaxis_tickangle=45
-        )
-        
-        return fig_male, fig_female
-
     st.write("### Visualisation des données")
     
-    choix = ['Salaire moyen par région', 'Entreprises par région', 'Distribution des salaires', 'Salaires moyens par région (50+)', 'Salaires moyens par catégorie et région',  'Top 5 salaires en Île-de-France', 'Top 5 salaires en Île-de-France (50+)']
+    choix = [
+        'Salaire moyen par région', 
+        'Entreprises par région', 
+        'Distribution des salaires', 
+        'Salaires moyens par région (50+)', 
+        'Salaires moyens par catégorie et région',  
+        'Top 5 salaires en Île-de-France', 
+        'Top 5 salaires en Île-de-France (50+)'
+    ]
    
-
     option = st.selectbox('Choix du graphique', choix)
     st.write('Le graphique choisi est :', option)
 
@@ -285,57 +148,46 @@ if page == pages[2] :
         st.write("Ce graphique présente le nombre total d'entreprises par région. Il montre où se concentrent la majorité des entreprises en France.")
         fig = plot_companies_by_region(df_final_merge2)
         st.plotly_chart(fig)
-        
         st.write("L'Île-de-France et la région Auvergne-Rhône-Alpes se distinguent par le nombre élevé d'entreprises, reflétant leur dynamisme économique.")
-
 
     elif option == 'Distribution des salaires':
         st.write("La distribution des salaires moyens entre les femmes et les hommes de plus de 50 ans dans l'industrie en France est illustrée ici.")
-    
         fig = plot_salary_distribution(df_final_merge2)
         st.plotly_chart(fig)
-
         st.write("Il est évident que les hommes ont tendance à avoir des salaires plus élevés que les femmes dans cette tranche d'âge.")
-
 
     elif option == 'Salaires moyens par région (50+)':
         st.write("Ce graphique compare les salaires moyens des hommes et des femmes de plus de 50 ans par région.")
-        
         fig = plot_average_salaries_over_50_by_region(df_final_merge2)
         st.plotly_chart(fig)
         st.write("On constate des différences significatives de salaire entre les genres dans certaines régions, avec les hommes gagnant généralement plus.")
 
-
     elif option == 'Salaires moyens par catégorie et région':
         st.write("Voici les salaires moyens par catégorie professionnelle et par région.")
-       
         fig = plot_average_salaries_by_category_and_region(df_final_merge2)
         st.plotly_chart(fig)
         st.write("Les cadres ont les salaires les plus élevés, suivis par les employés et les travailleurs. Ces différences se reflètent également à travers les régions.")
 
-
     elif option == 'Top 5 salaires en Île-de-France':
         st.write("Les cinq valeurs extrêmes de salaire dans la région Île-de-France sont présentées ici.")
-       
         fig = plot_top_5_salaries_idf(df_final_merge2)
         st.plotly_chart(fig)
         st.write("Ces villes se distinguent par leurs salaires élevés, montrant une forte disparité au sein de la région Île-de-France.")
 
-
     elif option == 'Top 5 salaires en Île-de-France (50+)':
-        st.write("Les cinq villes avec les salaires moyens les plus élevés pour les hommes et por les femmes (50+ ans) en Île-de-France.")
-       
+        st.write("Les cinq villes avec les salaires moyens les plus élevés pour les hommes et pour les femmes (50+ ans) en Île-de-France.")
         fig_male, fig_female = plot_top_5_salaries_idf_comparison(df_final_merge2)
         st.plotly_chart(fig_male)
         st.plotly_chart(fig_female)
-
         st.write("Ces graphiques montrent que même parmi les meilleures villes, il existe des disparités salariales entre les hommes et les femmes de plus de 50 ans.")
+
 
 ## Préparation des données Page
 #if page == pages[3] : 
 #    st.write("### Préparation des données")
 
 #### MODELISATION
+
 
 # Global variable to store clustering means
 cluster_means_global = {}
@@ -362,30 +214,6 @@ features_num_selected = ['Total_Salaries', 'nb_auto_entrepreneur',
        'men_over_15_bac_plus_5_gratuated', 'women_over_15_no_diploma',
        'women_over_15_bac_plus_5_gratuated']
 
-@st.cache_data
-def plot_scatter(data, labels, title='Scatter Plot', x_label='X-axis', y_label='Y-axis', color_map='viridis'):
-    plt.figure(figsize=(10, 4))
-    plt.scatter(data[:, 0], data[:, 1], c=labels, cmap=color_map)
-    plt.xlabel(x_label)
-    plt.ylabel(y_label)
-    plt.title(title)
-    plt.colorbar(label='Cluster')
-    st.pyplot(plt)
-
-
-@st.cache_data
-def plot_dendrogram(data, p=10, color_threshold=150):
-    linked = linkage(data, method='ward')
-
-    plt.figure(figsize=(10, 5))
-    dendrogram(linked, orientation='top', distance_sort='descending', truncate_mode='level', p=p, 
-               color_threshold=color_threshold, show_leaf_counts=True)
-    plt.axhline(y=color_threshold, color='r', linestyle='--')
-    plt.title('Dendrogramme des clusters')
-    plt.xlabel('Index des points de données')
-    plt.ylabel('Distance')
-    st.pyplot(plt)
-
 
 # Initialize a dictionary to store the scores
 scores = {
@@ -394,7 +222,6 @@ scores = {
     'Silhouette Score': []
 }
 
-@st.cache_data
 # Function to evaluate and store scores
 def evaluate_clustering(method_name, data, labels):
     ch_score = calinski_harabasz_score(data, labels)
@@ -410,7 +237,7 @@ def get_cluster_column_name(method, reducer, n_clusters):
     return f'{method.capitalize()} clustering sans ACP Clustering'
 
 
-@st.cache_data
+# @st.cache_data
 def clustering_generic(data, n_clusters, method='kmeans', reducer=None, n_components=None, perplexity=None, learning_rate=None, n_iter=None, n_neighbors=None, min_dist=None):
     if reducer == 'pca' and n_components:
         pca = PCA(n_components=n_components)
@@ -450,7 +277,7 @@ def clustering_generic(data, n_clusters, method='kmeans', reducer=None, n_compon
                  y_label='Composante principale 2')
 
     # Evaluation du clustering
-    evaluate_clustering(clustering_key, data_transformed, labels)
+    # evaluate_clustering(clustering_key, data_transformed, labels)
     
     clustering_results = {clustering_key: {'data': data_transformed, 'labels': labels}}
     
@@ -458,7 +285,6 @@ def clustering_generic(data, n_clusters, method='kmeans', reducer=None, n_compon
 
 
 geojson_path = 'src/departements-avec-outre-mer.geojson'
-
 
 
 # Afficher la section de modélisation
@@ -551,10 +377,18 @@ if page == pages[4]:
             st.write("### Clustering")
             clustering_results = clustering_generic(df_scaled_df, n_clusters=n_clusters, method='kmeans', reducer='umap', n_components=n_components, n_neighbors=n_neighbors, min_dist=min_dist)
 
-    # Afficher les scores de clustering
-    st.write("### Scores de Clustering")
-    scores_df = pd.DataFrame(scores)
-    st.dataframe(scores_df)
+       
+        # Automatically evaluate after clustering
+        for method, results in clustering_results.items():
+            evaluate_clustering(method, results['data'], results['labels'])
+
+        # Afficher les scores de clustering
+        st.write("### Scores de Clustering")
+        if scores['Method']:
+            scores_df = pd.DataFrame(scores)
+            st.dataframe(scores_df)
+        else:
+            st.write("Aucun score à afficher. Veuillez lancer l'évaluation.")
 
 
 if page == pages[5]: 
