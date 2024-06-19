@@ -35,7 +35,7 @@ from folium.plugins import MarkerCluster
 from fi_functions import *
 
 # Import the data
-df_final_merge2, df_scaled_df = load_data()
+df_final_merge2, df_scaled_df, results_df = load_data()
 
 
 st.title("French Industry Project")
@@ -46,7 +46,7 @@ logo_url = "img/dst-logo.png"
 st.sidebar.image(logo_url)
 
 st.sidebar.title("Sommaire")
-pages=["Contexte et objectifs du projet", "Le Jeu De Données", "Data Vizualization", "Préparation des données" ,"Modélisation", "Conclusion"]
+pages=["Contexte et objectifs du projet", "Le Jeu De Données", "Data Vizualization", "Préparation des données" ,"Modélisation", "Analyse des Résultats de la Modélisation", "Conclusion"]
 page=st.sidebar.radio("Sélectionnez une partie :", pages)
 
 # Add a line before the section
@@ -120,8 +120,7 @@ if page == pages[1]:
     #     st.dataframe(summary(df_final_merge2))
 
 
-## DataViz Page
-## Data Visualization Page 
+## Data Visualization Page ##
 if page == pages[2] : 
     st.write("### Visualisation des données")
     
@@ -183,44 +182,10 @@ if page == pages[2] :
 
 
 
-## Préparation des données Page
+### Préparation des données Page ###
 if page == pages[3]:
     # Example of the column renaming code
-    column_renaming_code = """
-    # Renommage des colonnes pour cohérence
-    df_final_merge2.rename(columns={
-        'SNHM20': 'mean_net_salary_hour_overall',
-        'SNHMC20': 'mean_net_salary_hour_executives',
-        'SNHMP20': 'mean_net_salary_hour_avg_executive',
-        'SNHME20': 'mean_net_salary_hour_employee',
-        'SNHMO20': 'mean_net_salary_hour_worker',
-        'SNHMF20': 'mean_net_salary_hour_female',
-        'SNHMFC20': 'mean_net_salary_hour_female_executives',
-        'SNHMFP20': 'mean_net_salary_hour_avg_female_executive',
-        'SNHMFE20': 'mean_net_salary_hour_female_employee',
-        'SNHMFO20': 'mean_net_salary_hour_female_worker',
-        'SNHMH20': 'mean_net_salary_hour_male',
-        'SNHMHC20': 'mean_net_salary_hour_male_executives',
-        'SNHMHP20': 'mean_net_salary_hour_avg_male_executive',
-        'SNHMHE20': 'mean_net_salary_hour_male_employee',
-        'SNHMHO20': 'mean_net_salary_hour_male_worker',
-        'SNHM1820': 'mean_net_salary_hour_18_25',
-        'SNHM2620': 'mean_net_salary_hour_26_50',
-        'SNHM5020': 'mean_net_salary_hour_over_50',
-        'SNHMF1820': 'mean_net_salary_hour_female_18_25',
-        'SNHMF2620': 'mean_net_salary_hour_female_26_50',
-        'SNHMF5020': 'mean_net_salary_hour_female_over_50',
-        'SNHMH1820': 'mean_net_salary_hour_male_18_25',
-        'SNHMH2620': 'mean_net_salary_hour_male_26_50',
-        'SNHMH5020': 'mean_net_salary_hour_male_over_50',
-        'DEPT_nom': 'DEPT_name',
-        'P20_HNSCOL15P_DIPLMIN': 'men_over_15_no_diploma',
-        'P20_HNSCOL15P_SUP5': 'men_over_15_bac_plus_5_graduated',
-        'P20_FNSCOL15P_DIPLMIN': 'women_over_15_no_diploma',
-        'P20_FNSCOL15P_SUP5': 'women_over_15_bac_plus_5_graduated'
-    }, inplace=True)
-    """
-
+    
     st.write("### Préparation des données")
 
     st.write("""
@@ -410,7 +375,7 @@ if page == pages[3]:
         st.dataframe(df_scaled_df.head())
 
 
-    
+   
 
 
 #### MODELISATION ####
@@ -458,13 +423,7 @@ def evaluate_clustering(method_name, data, labels):
     scores['Silhouette Score'].append(silhouette_avg)
 
 
-def get_cluster_column_name(method, reducer, n_clusters):
-    if reducer:
-        return f'{method.capitalize()} clustering après {reducer.upper()} Clustering'
-    return f'{method.capitalize()} clustering sans ACP Clustering'
-
-
-# @st.cache_data
+#@st.cache_data
 def clustering_generic(data, n_clusters, method='kmeans', reducer=None, n_components=None, perplexity=None, learning_rate=None, n_iter=None, n_neighbors=None, min_dist=None):
     if reducer == 'pca' and n_components:
         pca = PCA(n_components=n_components)
@@ -615,5 +574,281 @@ if page == pages[4]:
             st.write("Aucun score à afficher. Veuillez lancer l'évaluation.")
 
 
+###### Analyse ######
+features_num_selected_acp_criteria = ['Total_Salaries', 'nb_auto_entrepreneur',
+       'nb_micro_entreprises', 'nb_small_entreprises', 'nb_medium_entreprises',
+       'nb_large_entreprises', 'mean_net_salary_hour_overall',
+       'mean_net_salary_hour_executives', 'mean_net_salary_hour_avg_executive',
+       'mean_net_salary_hour_employee', 'mean_net_salary_hour_worker',
+       'mean_net_salary_hour_female', 'mean_net_salary_hour_female_executives',
+       'mean_net_salary_hour_avg_female_executive',
+       'mean_net_salary_hour_female_employee',
+       'mean_net_salary_hour_female_worker', 'mean_net_salary_hour_male',
+       'mean_net_salary_hour_male_executives',
+       'mean_net_salary_hour_avg_male_executive',
+       'mean_net_salary_hour_male_employee',
+       'mean_net_salary_hour_male_worker', 'mean_net_salary_hour_18_25',
+       'mean_net_salary_hour_26_50', 'mean_net_salary_hour_over_50',
+       'mean_net_salary_hour_female_18_25',
+       'mean_net_salary_hour_female_26_50',
+       'mean_net_salary_hour_female_over_50',
+       'mean_net_salary_hour_male_18_25', 'mean_net_salary_hour_male_26_50',
+       'mean_net_salary_hour_male_over_50', 'men_over_15_no_diploma',
+       'men_over_15_bac_plus_5_gratuated', 'women_over_15_no_diploma',
+       'women_over_15_bac_plus_5_gratuated']
+
+# Calculate cluster means for the best algo
+cluster_means_acp_kmeans_optimised = df_final_merge2.groupby('Cluster-ACP-KMeans-best')[features_num_selected_acp_criteria].mean().reset_index()
+
+
+
+# Extract data for Paris (Cluster 3) and the neighboring departments (they are clusters 0, 1, and 2)
+# Extract data for Paris and neighboring departments
+paris_data = get_cluster_data(cluster_means_acp_kmeans_optimised,3)
+hauts_de_seine_data = get_cluster_data(cluster_means_acp_kmeans_optimised,1)
+seine_saint_denis_data = get_cluster_data(cluster_means_acp_kmeans_optimised,2)
+val_de_marne_data = get_cluster_data(cluster_means_acp_kmeans_optimised,0)
+
+# paris_data = cluster_means_acp_kmeans_optimised[cluster_means_acp_kmeans_optimised['Cluster-ACP-KMeans-best'] == 3].iloc[0]
+# hauts_de_seine_data = cluster_means_acp_kmeans_optimised[cluster_means_acp_kmeans_optimised['Cluster-ACP-KMeans-best'] == 1].iloc[0]
+# seine_saint_denis_data = cluster_means_acp_kmeans_optimised[cluster_means_acp_kmeans_optimised['Cluster-ACP-KMeans-best'] == 2].iloc[0]
+# val_de_marne_data = cluster_means_acp_kmeans_optimised[cluster_means_acp_kmeans_optimised['Cluster-ACP-KMeans-best'] == 0].iloc[0]
+
+
+# Define the human-readable names in French
+human_readable_names = {
+    'Total_Salaries': 'Nombre Total d\'Entreprises',
+    'nb_auto_entrepreneur': 'Nombre d\'Auto-Entrepreneurs',
+    'nb_micro_entreprises': 'Micro-Entreprises',
+    'nb_small_entreprises': 'Petites Entreprises',
+    'nb_medium_entreprises': 'Moyennes Entreprises',
+    'nb_large_entreprises': 'Grandes Entreprises',
+    'mean_net_salary_hour_overall': 'Salaire net moyen par heure',
+    'mean_net_salary_hour_executives': 'Salaire net moyen par heure pour les cadres',
+    'mean_net_salary_hour_avg_executive': 'Salaire net moyen par heure pour un cadre moyen',
+    'mean_net_salary_hour_employee': 'Salaire net moyen par heure pour l\'employé',
+    'mean_net_salary_hour_worker': 'Salaire net moyen par heure pour le travailleur',
+    'mean_net_salary_hour_female': 'Salaire net moyen pour les femmes',
+    'mean_net_salary_hour_female_executives': 'Salaire net moyen par heure pour les cadres féminins',
+    'mean_net_salary_hour_avg_female_executive': 'Salaire net moyen par heure pour les cadres moyens féminins',
+    'mean_net_salary_hour_female_employee': 'Salaire net moyen par heure pour une employée',
+    'mean_net_salary_hour_female_worker': 'Salaire net moyen par heure pour une travailleuse',
+    'mean_net_salary_hour_male': 'Salaire net moyen pour un homme',
+    'mean_net_salary_hour_male_executives': 'Salaire net moyen par heure pour un cadre masculin',
+    'mean_net_salary_hour_avg_male_executive': 'Salaire net moyen par heure pour les cadres moyens masculins',
+    'mean_net_salary_hour_male_employee': 'Salaire net moyen par heure pour un employé masculin',
+    'mean_net_salary_hour_male_worker': 'Salaire net moyen par heure pour un travailleur masculin',
+    'mean_net_salary_hour_18_25': 'Salaire net moyen par heure pour les 18-25 ans',
+    'mean_net_salary_hour_26_50': 'Salaire net moyen par heure pour les 26-50 ans',
+    'mean_net_salary_hour_over_50': 'Salaire net moyen par heure pour les plus de 50 ans',
+    'mean_net_salary_hour_female_18_25': 'Salaire net moyen par heure pour les femmes âgées de 18 à 25 ans',
+    'mean_net_salary_hour_female_26_50': 'Salaire net moyen par heure pour les femmes âgées de 26 à 50 ans',
+    'mean_net_salary_hour_female_over_50': 'Salaire net moyen par heure pour les femmes de plus de 50 ans',
+    'mean_net_salary_hour_male_18_25': 'Salaire net moyen par heure pour les hommes âgés de 18 à 25 ans',
+    'mean_net_salary_hour_male_26_50': 'Salaire net moyen par heure pour les hommes âgés de 26 à 50 ans',
+    'mean_net_salary_hour_male_over_50': 'Salaire net moyen par heure pour les hommes de plus de 50 ans',
+    'men_over_15_no_diploma': 'Hommes de plus de 15 ans sans diplôme',
+    'men_over_15_bac_plus_5_gratuated': 'Hommes de plus de 15 ans avec Bac+5',
+    'women_over_15_no_diploma': 'Femmes de plus de 15 ans sans diplôme',
+    'women_over_15_bac_plus_5_gratuated': 'Femmes de plus de 15 ans avec Bac+5'
+}
+
+# Define criteria for each category
+enterprise_criteria = [
+    'Total_Salaries', 'nb_auto_entrepreneur', 'nb_micro_entreprises', 
+    'nb_small_entreprises', 'nb_medium_entreprises', 'nb_large_entreprises'
+]
+
+salary_criteria = [
+    'mean_net_salary_hour_overall', 'mean_net_salary_hour_executives', 
+    'mean_net_salary_hour_avg_executive', 'mean_net_salary_hour_employee', 
+    'mean_net_salary_hour_worker', 'mean_net_salary_hour_female', 
+    'mean_net_salary_hour_female_executives', 'mean_net_salary_hour_avg_female_executive', 
+    'mean_net_salary_hour_female_employee', 'mean_net_salary_hour_female_worker', 
+    'mean_net_salary_hour_male', 'mean_net_salary_hour_male_executives', 
+    'mean_net_salary_hour_avg_male_executive', 'mean_net_salary_hour_male_employee', 
+    'mean_net_salary_hour_male_worker', 'mean_net_salary_hour_18_25', 
+    'mean_net_salary_hour_26_50', 'mean_net_salary_hour_over_50', 
+    'mean_net_salary_hour_female_18_25', 'mean_net_salary_hour_female_26_50', 
+    'mean_net_salary_hour_female_over_50', 'mean_net_salary_hour_male_18_25', 
+    'mean_net_salary_hour_male_26_50', 'mean_net_salary_hour_male_over_50'
+]
+
+education_criteria = [
+    'men_over_15_no_diploma', 'men_over_15_bac_plus_5_gratuated', 
+    'women_over_15_no_diploma', 'women_over_15_bac_plus_5_gratuated'
+]
+
+# Extract data for each category
+def extract_comparison_data(criteria):
+    comparison_data = {
+        'Critères': [human_readable_names[crit] for crit in criteria],
+        'Paris': paris_data[criteria].values,
+        'Hauts-de-Seine': hauts_de_seine_data[criteria].values,
+        'Seine-Saint-Denis': seine_saint_denis_data[criteria].values,
+        'Val-de-Marne': val_de_marne_data[criteria].values
+    }
+    comparison_df = pd.DataFrame(comparison_data)
+    for col in ['Hauts-de-Seine', 'Seine-Saint-Denis', 'Val-de-Marne']:
+        comparison_df[col] = comparison_df.apply(lambda row: add_arrow(row[col], row['Paris']), axis=1)
+    return comparison_df
+
+# Create comparison tables
+enterprise_df = extract_comparison_data(enterprise_criteria)
+salary_df = extract_comparison_data(salary_criteria)
+education_df = extract_comparison_data(education_criteria)
+
+# Convert DataFrames to HTML
+enterprise_html = enterprise_df.to_html(escape=False, index=False)
+salary_html = salary_df.to_html(escape=False, index=False)
+education_html = education_df.to_html(escape=False, index=False)
+
+# st.dataframe(cluster_means_acp_kmeans_optimised.columns)
+
+# Données du tableau
+data = {
+    "Indice": ["Silhouette Score", "Indice de Calinski-Harabasz"],
+    "Description": [
+        "Mesure à la fois la cohésion des clusters (proximité des points au sein d'un même cluster) et la séparation entre les clusters (distance entre différents clusters).",
+        "Évalue la compacité et la séparation des clusters. Calculé en utilisant le rapport entre la somme de la dispersion entre les clusters et la somme de la dispersion au sein des clusters."
+    ],
+    "Interprétation": [
+        "Variant de -1 à 1, des valeurs plus élevées indiquent des clusters bien formés et distincts, facilitant ainsi l'interprétation des résultats.",
+        "Un score élevé indique que les clusters sont denses et bien séparés."
+    ]
+}
+
+# Création du DataFrame
+df_metric = pd.DataFrame(data)
+
+
+# Données du tableau
+data_methods = {
+    "Method": [
+        "KMeans without ACP", "KMeans after ACP", "KMeans after ACP-2", 
+        "KMeans after TSNE", "AgglomerativeClustering after TSNE", 
+        "AgglomerativeClustering after ACP", "KMeans after UMAP"
+    ],
+    "Calinski-Harabasz Index": [
+        1375.163267, 2161.259580, 2161.311531, 3054.531292, 
+        2274.970079, 1951.461117, 6371.374481
+    ],
+    "Silhouette Score": [
+        0.275796, 0.476795, 0.476796, 0.294976, 0.227908, 0.282589, 0.422500
+    ]
+}
+
+df_methods = pd.DataFrame(data_methods)
+
+
+# Visualization of Calinski-Harabasz scores
+fig = go.Figure()
+
 if page == pages[5]: 
+    st.write("### Analyse des Résultats de la Modélisation") 
+
+    st.markdown('''
+    Pendant notre analyse, la méthode de clustering retenue est KMeans avec Analyse en Composantes Principales (ACP).
+                
+    **Justification du Choix de la Méthode**
+
+    Les métriques de performance utilisées pour comparer ces méthodes étaient le Silhouette Score et l'Indice de Calinski-Harabasz.
+    ''')
+
+
+    # Affichage du tableau des scores dans Streamlit
+    # Convert DataFrame to HTML 
+    st.markdown(df_metric.to_html(index=False, justify='center'), unsafe_allow_html=True)
+
+    # Affichage des tableaux dans Streamlit
+    st.write('''
+             
+    **Comparaison des performances des méthodes de clustering:**
+             
+    Nous avons appliqué ces indices aux résultats des différentes méthodes de clustering et comparé les scores obtenus pour déterminer quelle méthode offre la meilleure performance.  ''' )
+    st.dataframe(df_methods)
+
+
+    st.markdown('''
+
+    - **KMeans après ACP** présente les meilleurs résultats avec un score de silhouette de 0.476798, indiquant une meilleure cohésion interne et une meilleure séparation des clusters.
+    - **KMeans après UMAP** offre les meilleurs résultats en termes d'indice de Calinski-Harabasz avec une valeur de 6371.374481, indiquant une très bonne formation des clusters.
+                
+    Cependant, pour obtenir un bon équilibre entre la cohésion interne et la séparation des clusters, KMeans après ACP semble être la meilleure option grâce à son score de silhouette supérieur.
+
+    **Évaluation des combinaisons de dimensions réduites et nombres de clusters:**
+    
+    Nous avons testé différentes combinaisons de composantes principales (n_components) et de nombres de clusters (n_clusters) en utilisant l'Analyse en Composantes Principales (ACP) suivie de KMeans pour le clustering. Les performances de ces combinaisons ont été évaluées à l'aide de deux métriques : le Silhouette Score et le Calinski-Harabasz Score. Les résultats ont été visualisés pour aider à déterminer les paramètres optimaux.
+    ''')
+
+    param_grid = {'n_components': [2, 3, 4, 5]}
+
+    # Visualization of Silhouette scores
+    fig1 = go.Figure()
+
+    for n_components in param_grid['n_components']:
+        subset = results_df[results_df['n_components'] == n_components]
+        fig1.add_trace(go.Scatter(x=subset['n_clusters'], y=subset['silhouette_score'], mode='lines+markers', name=f'n_components={n_components}'))
+
+    fig1.update_layout(
+        title='Silhouette Score vs. Number of Clusters',
+        xaxis_title='Number of Clusters',
+        yaxis_title='Silhouette Score'
+    )
+
+    # Visualization of Calinski-Harabasz scores
+    fig2 = go.Figure()
+
+    for n_components in param_grid['n_components']:
+        subset = results_df[results_df['n_components'] == n_components]
+        fig2.add_trace(go.Scatter(x=subset['n_clusters'], y=subset['calinski_harabasz_score'], mode='lines+markers', name=f'n_components={n_components}'))
+
+    fig2.update_layout(
+        title='Calinski-Harabasz Score vs. Number of Clusters',
+        xaxis_title='Number of Clusters',
+        yaxis_title='Calinski-Harabasz Score'
+    )
+
+    # Display the plots within the Streamlit app
+    st.plotly_chart(fig1)
+    st.plotly_chart(fig2)
+    
+    st.markdown('''
+    Les meilleures performances sont obtenues avec **n_components=2 et n_clusters=3, 4, 5, ou 6**. 
+                
+    Nous choisissons la combinaison **n_components=2 et n_clusters=5** pour un bon équilibre entre cohésion et séparation des clusters, comme indiqué par les scores Silhouette et Calinski-Harabasz.''')
+
+    st.markdown("### Comparaison entre Paris et la petite couronne:")
+    st.markdown("#### Comparaison des entreprises")
+    st.markdown(enterprise_html, unsafe_allow_html=True)
+
+    st.markdown("#### Comparaison des salaires")
+    st.markdown(salary_html, unsafe_allow_html=True)
+
+    st.markdown("#### Comparaison des niveaux d'éducation")
+    st.markdown(education_html, unsafe_allow_html=True)
+    
+    st.markdown(''' 
+    **Résultats:**
+
+    Voici les résultats de la visualisation des clusters avec ces paramètres optimaux :
+    ![Cluster Map](path_to_your_image_file)
+                TO DO MAP HERE 
+                
+
+    **Analyse des résultats:**
+
+    - Le nombre d'entreprises varie significativement selon la région, avec Paris ayant un nombre beaucoup plus élevé de micro-entreprises comparé à la petite couronne.
+    - Les disparités salariales selon le genre et l'âge sont également marquées, avec des salaires moyens plus élevés à Paris, particulièrement pour les cadres masculins.
+    - Les raisons de ces disparités peuvent être multiples, incluant des facteurs économiques, sociaux et culturels spécifiques à chaque région.
+                
+                
+    Ces analyses montrent des inégalités significatives entre Paris et la petite couronne, mettant en lumière des disparités socio-économiques influencées par divers facteurs régionaux.
+
+    En conclusion, le choix de la méthode KMeans après ACP et des paramètres optimaux a permis une meilleure segmentation des départements selon leurs caractéristiques socio-économiques, fournissant ainsi une base solide pour l'analyse des inégalités régionales.
+                
+                ''')
+
+
+if page == pages[6]: 
     st.write("### Conclusion")

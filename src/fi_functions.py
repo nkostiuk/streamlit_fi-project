@@ -133,60 +133,6 @@ def get_unique_lengths(column):
     
     return unique_lengths
 
-# Convert the specified column to string type and add leading zeros to match the desired length
-def add_leading_zeros(df, column_name, desired_length):
-    """
-    Convert the specified column to string type and add leading zeros to match the desired length.
-
-    Parameters:
-    df_column (pandas.Series): The column to be converted, specified as a pandas Series.
-    desired_length (int): The desired length of the values after adding leading zeros.
-
-    Returns:
-    None
-    """
-    # Convert the specified column to string type
-    df[column_name] = df[column_name].astype(str)
-    
-    # Add leading zeros to match the desired length
-    df[column_name] = df[column_name].str.zfill(desired_length)
-
-from sklearn.preprocessing import OneHotEncoder
-
-def one_hot_encoding_sklearn(df, columns):
-    """
-    Performs one-hot encoding for specified columns in the DataFrame using Scikit-learn's OneHotEncoder.
-
-    Parameters:
-    df (DataFrame): The pandas DataFrame.
-    columns (list): A list of column names to encode.
-
-    Returns:
-    DataFrame: The DataFrame with one-hot encoded columns.
-    """
-    # Select columns to encode
-    df_subset = df[columns]
-
-    # Initialize OneHotEncoder
-    encoder = OneHotEncoder(drop='first', sparse=False)
-
-    # Fit and transform the selected columns
-    encoded_columns = encoder.fit_transform(df_subset)
-
-    # Create column names for the encoded features
-    encoded_column_names = encoder.get_feature_names_out(input_features=columns)
-
-    # Create a DataFrame with the encoded columns
-    df_encoded = pd.DataFrame(encoded_columns, columns=encoded_column_names, index=df.index)
-
-    # Drop the original columns from the DataFrame
-    df = df.drop(columns=columns)
-
-    # Concatenate the original DataFrame and the encoded DataFrame
-    df = pd.concat([df, df_encoded], axis=1)
-
-    return df
-
 
 from sklearn.preprocessing import StandardScaler
 
@@ -244,8 +190,9 @@ import streamlit as st
 def load_data():
     df_final_merge2 = pd.read_csv('data/df_final_merge2.csv')
     df_scaled_df = pd.read_csv('data/df_scaled_df.csv')
-    
-    return df_final_merge2, df_scaled_df
+    results_df = pd.read_csv('data/nb_comp_clust_results_df.csv') 
+
+    return df_final_merge2, df_scaled_df, results_df
 
 
 @st.cache_data
@@ -381,6 +328,7 @@ def plot_top_5_salaries_idf_comparison(df):
     return fig_male, fig_female
 
 import matplotlib.pyplot as plt
+
 @st.cache_data
 def plot_scatter(data, labels, title='Scatter Plot', x_label='X-axis', y_label='Y-axis', color_map='viridis'):
     plt.figure(figsize=(10, 4))
@@ -392,6 +340,7 @@ def plot_scatter(data, labels, title='Scatter Plot', x_label='X-axis', y_label='
     st.pyplot(plt)
 
 from scipy.cluster.hierarchy import dendrogram, linkage
+
 @st.cache_data
 def plot_dendrogram(data, p=10, color_threshold=150):
     linked = linkage(data, method='ward')
@@ -404,3 +353,33 @@ def plot_dendrogram(data, p=10, color_threshold=150):
     plt.xlabel('Index des points de données')
     plt.ylabel('Distance')
     st.pyplot(plt)
+
+
+# Add arrow indicators with colored formatting
+def add_arrow(value, reference):
+    if value > reference:
+        return f"{value:.2f} <span style='color:green;'>↑</span>"
+    elif value < reference:
+        return f"{value:.2f} <span style='color:red;'>↓</span>"
+    else:
+        return f"{value:.2f} -"
+    
+# Function to extract data for each cluster
+def get_cluster_data(cluster_means_acp_kmeans_optimised, cluster_number):
+    return cluster_means_acp_kmeans_optimised[cluster_means_acp_kmeans_optimised['Cluster-ACP-KMeans-best'] == cluster_number].iloc[0]
+
+
+
+# Function to plot scores
+def plot_scores(results_df, score_column, title, ylabel):
+    fig, ax = plt.subplots(1, 1, figsize=(12, 6))
+    for n_components in results_df['n_components'].unique():
+        subset = results_df[results_df['n_components'] == n_components]
+        ax.plot(subset['n_clusters'], subset[score_column], marker='o', label=f'n_components={n_components}')
+    ax.set_title(title)
+    ax.set_xlabel('Number of Clusters')
+    ax.set_ylabel(ylabel)
+    ax.legend()
+    return fig
+
+
