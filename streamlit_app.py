@@ -46,7 +46,7 @@ logo_url = "img/dst-logo.png"
 st.sidebar.image(logo_url)
 
 st.sidebar.title("Sommaire")
-pages=["Contexte et objectifs du projet", "Le Jeu De Données", "Data Vizualization", "Préparation des données" ,"Modélisation", "Analyse des Résultats de la Modélisation", "Conclusion"]
+pages=["Contexte et objectifs du projet", "Le Jeu De Données", "Data Vizualization", "Préparation des données" ,"Modélisation", "Analyse des Résultats", "Conclusion"]
 page=st.sidebar.radio("Sélectionnez une partie :", pages)
 
 # Add a line before the section
@@ -609,11 +609,6 @@ hauts_de_seine_data = get_cluster_data(cluster_means_acp_kmeans_optimised,1)
 seine_saint_denis_data = get_cluster_data(cluster_means_acp_kmeans_optimised,2)
 val_de_marne_data = get_cluster_data(cluster_means_acp_kmeans_optimised,0)
 
-# paris_data = cluster_means_acp_kmeans_optimised[cluster_means_acp_kmeans_optimised['Cluster-ACP-KMeans-best'] == 3].iloc[0]
-# hauts_de_seine_data = cluster_means_acp_kmeans_optimised[cluster_means_acp_kmeans_optimised['Cluster-ACP-KMeans-best'] == 1].iloc[0]
-# seine_saint_denis_data = cluster_means_acp_kmeans_optimised[cluster_means_acp_kmeans_optimised['Cluster-ACP-KMeans-best'] == 2].iloc[0]
-# val_de_marne_data = cluster_means_acp_kmeans_optimised[cluster_means_acp_kmeans_optimised['Cluster-ACP-KMeans-best'] == 0].iloc[0]
-
 
 # Define the human-readable names in French
 human_readable_names = {
@@ -693,10 +688,28 @@ def extract_comparison_data(criteria):
         comparison_df[col] = comparison_df.apply(lambda row: add_arrow(row[col], row['Paris']), axis=1)
     return comparison_df
 
+# Extract data for each category
+def extract_comparison_data_without_arrows(criteria):
+    comparison_data = {
+        'Critères': [human_readable_names[crit] for crit in criteria],
+        'Paris': paris_data[criteria].values,
+        'Hauts-de-Seine': hauts_de_seine_data[criteria].values,
+        'Seine-Saint-Denis': seine_saint_denis_data[criteria].values,
+        'Val-de-Marne': val_de_marne_data[criteria].values
+    }
+    comparison_df = pd.DataFrame(comparison_data)
+    return comparison_df
+
+
 # Create comparison tables
 enterprise_df = extract_comparison_data(enterprise_criteria)
 salary_df = extract_comparison_data(salary_criteria)
 education_df = extract_comparison_data(education_criteria)
+
+# Create comparison tables only with numbers
+enterprise_df_numbers = extract_comparison_data_without_arrows(enterprise_criteria)
+salary_df_numbers = extract_comparison_data_without_arrows(salary_criteria)
+education_df_numbers = extract_comparison_data_without_arrows(education_criteria)
 
 # Convert DataFrames to HTML
 enterprise_html = enterprise_df.to_html(escape=False, index=False)
@@ -741,8 +754,10 @@ data_methods = {
 df_methods = pd.DataFrame(data_methods)
 
 
-# Visualization of Calinski-Harabasz scores
-fig = go.Figure()
+# # Visualization of Calinski-Harabasz scores
+# fig = go.Figure()
+
+
 
 if page == pages[5]: 
     st.write("### Analyse des Résultats de la Modélisation") 
@@ -774,7 +789,7 @@ if page == pages[5]:
     - **KMeans après ACP** présente les meilleurs résultats avec un score de silhouette de 0.476798, indiquant une meilleure cohésion interne et une meilleure séparation des clusters.
     - **KMeans après UMAP** offre les meilleurs résultats en termes d'indice de Calinski-Harabasz avec une valeur de 6371.374481, indiquant une très bonne formation des clusters.
                 
-    Cependant, pour obtenir un bon équilibre entre la cohésion interne et la séparation des clusters, KMeans après ACP semble être la meilleure option grâce à son score de silhouette supérieur.
+    Cependant, pour obtenir un bon équilibre entre la cohésion interne et la séparation des clusters, **KMeans après ACP** semble être la meilleure option grâce à son score de silhouette supérieur.
 
     **Évaluation des combinaisons de dimensions réduites et nombres de clusters:**
     
@@ -822,17 +837,73 @@ if page == pages[5]:
     st.markdown("#### Comparaison des entreprises")
     st.markdown(enterprise_html, unsafe_allow_html=True)
 
+
+    # DataViz pour entreprises
+    fig = go.Figure()
+
+    for region in ["Paris", "Hauts-de-Seine", "Seine-Saint-Denis", "Val-de-Marne"]:
+        fig.add_trace(go.Bar(
+            x=enterprise_df_numbers["Critères"],
+            y=enterprise_df_numbers[region],
+            name=region
+        ))
+
+    # Ajouter des titres et des labels
+    fig.update_layout(
+        title="Comparaison des entreprises",
+        xaxis_title="Critères",
+        yaxis_title="Nombre d'entreprises",
+        barmode='group',
+        xaxis_tickangle=-45
+    )
+    st.plotly_chart(fig)
+
     st.markdown("#### Comparaison des salaires")
-    st.markdown(salary_html, unsafe_allow_html=True)
+    
+    # Adding scroll to the table
+    html_with_scroll = f"""
+                        <div style="height:300px; overflow:auto;">
+                            {salary_html}
+                        </div>
+    
+                       """
+    # Show table
+    st.markdown(html_with_scroll, unsafe_allow_html=True)
+    
+    # DataViz Salaire homme/femme basé sur les catégories d'emploi, age
+    ##DataViz par genre
+    plot_salary_comparison_by_region_and_gender(salary_df_numbers)
+
+    ##DataViz par genre et categorie emploie
+    categories = ['Travailleur', 'Employé', 'Cadre moyen', 'Cadre']
+    selected_category = st.selectbox("Choix du graphique", categories)
+    
+    plot_salary_comparison_by_category(salary_df_numbers, selected_category)
+
+    ## DataViz par emploie
+    plot_salary_comparison_by_job_category(salary_df_numbers)
+
+    ##DataViz par age group
+    plot_salary_comparison_by_age_group(salary_df_numbers)
+
+
+    ## Test ## 
 
     st.markdown("#### Comparaison des niveaux d'éducation")
     st.markdown(education_html, unsafe_allow_html=True)
     
+    plot_education_comparison(education_df_numbers)
+
+     ## Test finished## 
+    
+    st.image("img/map_kmeans_acp_result.png", caption="Cluster Map", use_column_width=True)
+
     st.markdown(''' 
     **Résultats:**
 
     Voici les résultats de la visualisation des clusters avec ces paramètres optimaux :
-    ![Cluster Map](path_to_your_image_file)
+    
+    ![Cluster Map]("img/map_kmeans_acp_result.png")
                 TO DO MAP HERE 
                 
 

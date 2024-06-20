@@ -383,3 +383,161 @@ def plot_scores(results_df, score_column, title, ylabel):
     return fig
 
 
+
+
+def plot_salary_comparison_by_category(df, category):
+    # Define the relevant columns based on the selected category
+    if category == 'Travailleur':
+        cols = [9, 14]  # Columns for "Salaire net moyen par heure pour une travailleuse" and "Salaire net moyen par heure pour un travailleur masculin"
+        title = "Comparaison des salaires par région pour les Travailleurs"
+    elif category == 'Employé':
+        cols = [8, 13]  # Columns for "Salaire net moyen par heure pour une employée" and "Salaire net moyen par heure pour un employé masculin"
+        title = "Comparaison des salaires par région pour les Employés"
+    elif category == 'Cadre moyen':
+        cols = [7, 12]  # Columns for "Salaire net moyen par heure pour les cadres moyens féminins" and "Salaire net moyen par heure pour les cadres moyens masculins"
+        title = "Comparaison des salaires par région pour les Cadres Moyens"
+    elif category == 'Cadre':
+        cols = [6, 11]  # Columns for "Salaire net moyen par heure pour les cadres féminins" and "Salaire net moyen par heure pour un cadre masculin"
+        title = "Comparaison des salaires par région pour les Cadres"
+    else:
+        st.error("Invalid category selected.")
+        return
+    
+    df_simplified = df.iloc[cols].copy().transpose().reset_index()
+    df_simplified.columns = ["Région", f"Salaire net moyen par heure pour une {category}e", f"Salaire net moyen par heure pour un {category} masculin"]
+    
+    df_simplified = df_simplified.iloc[1:]  # Remove the first row which corresponds to "Critères"
+    
+    # Melting the dataframe to make it suitable for plotly express
+    df_melted = df_simplified.melt(id_vars="Région", var_name="Catégorie", value_name="Salaire")
+    
+    # Visualization using plotly
+    fig = px.bar(
+        df_melted,
+        x="Région",
+        y="Salaire",
+        color="Catégorie",
+        color_discrete_map={
+            f"Salaire net moyen par heure pour une {category}e": "purple",
+            f"Salaire net moyen par heure pour un {category} masculin": "orange"
+        },
+        barmode="group",
+        title=title,
+        labels={"Salaire": "Salaire (Euro)"}
+    )
+    
+    st.plotly_chart(fig)
+
+
+def plot_salary_comparison_by_job_category(df):
+    job_categories = [1, 2, 3, 4]
+    df_simplified = df.iloc[job_categories].copy().transpose().reset_index()
+    df_simplified.columns = ["Region", "Cadres", "Cadre moyen", "Employé", "Travailleur"]
+
+    df_simplified = df_simplified.iloc[1:]  # Remove the first row which corresponds to "Critères"
+
+    # Melting the dataframe to make it suitable for plotly express
+    df_melted = df_simplified.melt(id_vars="Region", var_name="Job Category", value_name="Salary")
+
+    # Visualization using plotly
+    fig = px.bar(
+        df_melted,
+        x="Region",
+        y="Salary",
+        color="Job Category",
+        barmode="group",
+        title="Comparaison des salaires par la catégorie d'emploi",
+        labels={"Salary": "Salary (Euro)"}
+    )
+
+    st.plotly_chart(fig)
+
+
+def plot_salary_comparison_by_age_group(df):
+    age_groups = [15, 16, 17]
+    df_simplified = df.iloc[age_groups].copy().transpose().reset_index()
+    df_simplified.columns = ["Region", "18-25 ans", "26-50 ans", "Plus de 50 ans"]
+
+    df_simplified = df_simplified.iloc[1:]  # Remove the first row which corresponds to "Critères"
+
+    # Melting the dataframe to make it suitable for plotly express
+    df_melted = df_simplified.melt(id_vars="Region", var_name="Age Group", value_name="Salary")
+
+    # Visualization using plotly
+    fig = px.bar(
+        df_melted,
+        x="Region",
+        y="Salary",
+        color="Age Group",
+        barmode="group",
+        title="Comparaison des salaires par groupe d'âge",
+        labels={"Salary": "Salary (Euro)"}
+    )
+
+    st.plotly_chart(fig)
+
+
+# def plot_average_hourly_wage(df):
+#     df_simplified = df.iloc[[0]].copy().transpose().reset_index()
+#     df_simplified.columns = ["Region", "Salaire net moyen par heure"]
+
+#     df_simplified = df_simplified.iloc[1:]  # Remove the first row which corresponds to "Critères"
+
+#     # Visualization using plotly
+#     fig = px.bar(
+#         df_simplified,
+#         x="Region",
+#         y="Salaire net moyen par heure",
+#         title="Average Hourly Wage by Region",
+#         labels={"Salaire net moyen par heure": "Salary (Euro)"}
+#     )
+
+#     st.plotly_chart(fig)
+
+def plot_salary_comparison_by_region_and_gender(df):
+    df_simplified = df.iloc[[5, 10]].copy().transpose().reset_index()
+    df_simplified.columns = ["Région", "Salaire net moyen pour les femmes", "Salaire net moyen pour les hommes"]
+    
+    df_simplified = df_simplified.iloc[1:]  # Remove the first row which corresponds to "Critères"
+
+    # Melting the dataframe to make it suitable for plotly express
+    df_melted = df_simplified.melt(id_vars="Région", var_name="Catégorie", value_name="Salaire")
+
+    # Visualization using plotly
+    fig = px.bar(
+        df_melted,
+        x="Région",
+        y="Salaire",
+        color="Catégorie",
+        color_discrete_map={
+            "Salaire net moyen pour les femmes": "purple",
+            "Salaire net moyen pour les hommes": "orange"
+        },
+        barmode="group",
+        title="Comparaison des salaires par région et genre",
+        labels={"Salaire": "Salaire (Euro)"}
+    )
+
+    st.plotly_chart(fig)
+
+
+def plot_education_comparison(df):
+    """
+    This function takes a DataFrame with education levels and creates a bar chart
+    comparing the salary for different regions and education levels.
+    """
+    # Melting the dataframe to make it suitable for plotly express
+    df_melted = df.melt(id_vars="Critères", var_name="Région", value_name="Salaire")
+
+    # Visualization using plotly
+    fig = px.bar(
+        df_melted,
+        x="Région",
+        y="Salaire",
+        color="Critères",
+        barmode="group",
+        title="Comparaison des niveaux d'éducation",
+        labels={"Salaire": "Le nombre de personnes"}
+    )
+    
+    st.plotly_chart(fig)
