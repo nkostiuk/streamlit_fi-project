@@ -758,29 +758,32 @@ df_methods = pd.DataFrame(data_methods)
 # fig = go.Figure()
 
 
-
 if page == pages[5]: 
     st.write("### Analyse des Résultats de la Modélisation") 
 
     st.markdown('''
-    Pendant notre analyse, la méthode de clustering retenue est KMeans avec Analyse en Composantes Principales (ACP).
+                Pendant notre analyse, la méthode de clustering retenue est KMeans avec Analyse en Composantes Principales (ACP).
+                            
+                **Justification du choix de la méthode**
+
+                Les métriques de performance utilisées pour comparer ces méthodes étaient le Silhouette Score et l'Indice de Calinski-Harabasz.
                 
-    **Justification du Choix de la Méthode**
-
-    Les métriques de performance utilisées pour comparer ces méthodes étaient le Silhouette Score et l'Indice de Calinski-Harabasz.
-    ''')
-
+                ''')
 
     # Affichage du tableau des scores dans Streamlit
     # Convert DataFrame to HTML 
     st.markdown(df_metric.to_html(index=False, justify='center'), unsafe_allow_html=True)
-
+    st.markdown(''' <br>
+             ''' , unsafe_allow_html=True)
     # Affichage des tableaux dans Streamlit
-    st.write('''
+    st.markdown('''
              
-    **Comparaison des performances des méthodes de clustering:**
+            **Comparaison des performances des méthodes de clustering:**
+                    
+            Nous avons appliqué ces indices aux résultats des différentes méthodes de clustering et comparé les scores obtenus pour déterminer quelle méthode offre la meilleure performance.  
              
-    Nous avons appliqué ces indices aux résultats des différentes méthodes de clustering et comparé les scores obtenus pour déterminer quelle méthode offre la meilleure performance.  ''' )
+             ''' , unsafe_allow_html=True)
+    
     st.dataframe(df_methods)
 
 
@@ -833,7 +836,41 @@ if page == pages[5]:
                 
     Nous choisissons la combinaison **n_components=2 et n_clusters=5** pour un bon équilibre entre cohésion et séparation des clusters, comme indiqué par les scores Silhouette et Calinski-Harabasz.''')
 
+    st.markdown("#### Visualisation des clusters sur la map ")
+    st.markdown('''
+                #### France entière
+                La carte ci-dessous montre la répartition des clusters à travers la France entière. Chaque couleur représente un cluster distinct, permettant de visualiser clairement les différences géographiques et les regroupements de données
+                ''')
+
+    st.image("img/map_kmeans_acp_result.png", caption="Cluster Map", use_column_width=True)
+    st.markdown('''
+                Les résultats du clustering en France montrent une répartition géographique distincte des clusters. 
+                
+                - Le Cluster 4 (Bleu) couvre la majorité du territoire, suggérant des similitudes importantes entre ces départements. 
+
+                - Les Clusters 3 (Rouge) et 2 (Vert) sont moins courants et se concentrent dans des zones spécifiques, notamment autour de Paris pour le Cluster 3 et dans d'autres régions pour le Cluster 2. 
+                ''')
+    st.markdown("#### Zoom sur Paris et la petite couronne")
+    st.image("img/Map_Paris.png", caption="Paris et la petite couronne", use_column_width=True)
+    st.markdown('''
+                En se concentrant sur Paris et ses alentours, on observe une plus grande diversité de clusters. 
+                
+                Paris même appartient au Cluster 3 (Rouge), tandis que les départements environnants sont répartis entre le Cluster 0 (Violet), le Cluster 1 (Orange), le Cluster 2 (Vert) et le Cluster 4 (Bleu). 
+                
+                Cela montre une hétérogénéité plus élevée dans cette région, suggérant des variations importantes dans les caractéristiques.
+
+                Les caractéristiques analysées incluent :
+
+                - Le nombre total d'entreprises (auto-entrepreneurs, micro, petites, moyennes et grandes entreprises).
+                - Les salaires horaires moyens (toutes catégories confondues, cadres, employés, ouvriers, par genre et tranches d'âge).
+                - Le niveau de diplôme (hommes et femmes, sans diplôme et avec Bac+5).
+                
+
+                ''')
     st.markdown("### Comparaison entre Paris et la petite couronne:")
+    st.markdown('''
+                    Maintenant, nous allons examiner plus en détail les résultats spécifiques, notamment la comparaison des entreprises, des salaires et des niveaux d'éducation entre Paris et la petite couronne.
+                    ''')
     st.markdown("#### Comparaison des entreprises")
     st.markdown(enterprise_html, unsafe_allow_html=True)
 
@@ -895,20 +932,14 @@ if page == pages[5]:
     plot_education_comparison(education_df_numbers)
 
      ## Test finished## 
+    st.markdown(''' 
     
-    st.image("img/map_kmeans_acp_result.png", caption="Cluster Map", use_column_width=True)
+            
+                ''')
 
     st.markdown(''' 
+
     **Résultats:**
-
-    Voici les résultats de la visualisation des clusters avec ces paramètres optimaux :
-    
-    ![Cluster Map]("img/map_kmeans_acp_result.png")
-                TO DO MAP HERE 
-                
-
-    **Analyse des résultats:**
-
     - Le nombre d'entreprises varie significativement selon la région, avec Paris ayant un nombre beaucoup plus élevé de micro-entreprises comparé à la petite couronne.
     - Les disparités salariales selon le genre et l'âge sont également marquées, avec des salaires moyens plus élevés à Paris, particulièrement pour les cadres masculins.
     - Les raisons de ces disparités peuvent être multiples, incluant des facteurs économiques, sociaux et culturels spécifiques à chaque région.
@@ -918,7 +949,7 @@ if page == pages[5]:
 
     En conclusion, le choix de la méthode KMeans après ACP et des paramètres optimaux a permis une meilleure segmentation des départements selon leurs caractéristiques socio-économiques, fournissant ainsi une base solide pour l'analyse des inégalités régionales.
                 
-                ''')
+                ''', unsafe_allow_html=True)
 
 
 if page == pages[6]: 
