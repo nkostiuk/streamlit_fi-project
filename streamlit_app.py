@@ -12,10 +12,9 @@ sys.path.append('src')
 import streamlit as st
 import numpy as np
 import pandas as pd
-import geopandas as gpd
 import matplotlib.pyplot as plt
 import seaborn as sns
-from matplotlib.ticker import FuncFormatter
+#from matplotlib.ticker import FuncFormatter
 import plotly.graph_objs as go
 import plotly.express as px
 import plotly.io as pio
@@ -26,10 +25,6 @@ from sklearn.manifold import TSNE
 from sklearn.cluster import AgglomerativeClustering
 import umap
 from sklearn.metrics import calinski_harabasz_score, silhouette_score 
-import folium
-import json
-from streamlit_folium import folium_static
-from folium.plugins import MarkerCluster
 
 # Import modules from the appended path
 from fi_functions import *
