@@ -385,26 +385,91 @@ def plot_scores(results_df, score_column, title, ylabel):
 
 
 
+# def plot_salary_comparison_by_category(df, category):
+#     # Define the relevant columns based on the selected category
+#     if category == 'Travailleur':
+#         cols = [9, 14]  # Columns for "Salaire net moyen par heure pour une travailleuse" and "Salaire net moyen par heure pour un travailleur masculin"
+#         title = "Comparaison des salaires par région pour les Travailleurs"
+#     elif category == 'Employé':
+#         cols = [8, 13]  # Columns for "Salaire net moyen par heure pour une employée" and "Salaire net moyen par heure pour un employé masculin"
+#         title = "Comparaison des salaires par région pour les Employés"
+#     elif category == 'Cadre moyen':
+#         cols = [7, 12]  # Columns for "Salaire net moyen par heure pour les cadres moyens féminins" and "Salaire net moyen par heure pour les cadres moyens masculins"
+#         title = "Comparaison des salaires par région pour les Cadres Moyens"
+#     elif category == 'Cadre':
+#         cols = [6, 11]  # Columns for "Salaire net moyen par heure pour les cadres féminins" and "Salaire net moyen par heure pour un cadre masculin"
+#         title = "Comparaison des salaires par région pour les Cadres"
+#     else:
+#         st.error("Invalid category selected.")
+#         return
+    
+#     df_simplified = df.iloc[cols].copy().transpose().reset_index()
+#     df_simplified.columns = ["Région", f"Salaire net moyen par heure pour une {category}e", f"Salaire net moyen par heure pour un {category} masculin"]
+    
+#     df_simplified = df_simplified.iloc[1:]  # Remove the first row which corresponds to "Critères"
+    
+#     # Melting the dataframe to make it suitable for plotly express
+#     df_melted = df_simplified.melt(id_vars="Région", var_name="Catégorie", value_name="Salaire")
+    
+#     # Visualization using plotly
+#     fig = px.bar(
+#         df_melted,
+#         x="Région",
+#         y="Salaire",
+#         color="Catégorie",
+#         color_discrete_map={
+#             f"Salaire net moyen par heure pour une {category}e": "purple",
+#             f"Salaire net moyen par heure pour un {category} masculin": "orange"
+#         },
+#         barmode="group",
+#         title=title,
+#         labels={"Salaire": "Salaire (Euro)"}
+#     )
+    
+#     st.plotly_chart(fig)
+
+# Dictionary to handle gender-specific endings
+gender_specific_endings = {
+    "Travailleur": "Travailleuse",
+    "Employé": "Employée",
+    "Cadre moyen": "Cadre moyen féminin",
+    "Cadre": "Cadre féminin"
+}
+
+
 def plot_salary_comparison_by_category(df, category):
+    # Get the correct female form and male form
+    if category in gender_specific_endings:
+        female_form = gender_specific_endings[category]
+        if category == "Cadre moyen":
+            male_form = "Cadre moyen masculin"
+        elif category == "Cadre":
+            male_form = "Cadre masculin"
+        else:
+            male_form = f"{category}"
+    else:
+        st.error("Invalid category selected.")
+        return
+    
     # Define the relevant columns based on the selected category
     if category == 'Travailleur':
-        cols = [9, 14]  # Columns for "Salaire net moyen par heure pour une travailleuse" and "Salaire net moyen par heure pour un travailleur masculin"
+        cols = [9, 14]  # Columns for "Salaire net moyen par heure pour une travailleuse" and "Salaire net moyen par heure pour un travailleur"
         title = "Comparaison des salaires par région pour les Travailleurs"
     elif category == 'Employé':
-        cols = [8, 13]  # Columns for "Salaire net moyen par heure pour une employée" and "Salaire net moyen par heure pour un employé masculin"
+        cols = [8, 13]  # Columns for "Salaire net moyen par heure pour une employée" and "Salaire net moyen par heure pour un employé"
         title = "Comparaison des salaires par région pour les Employés"
     elif category == 'Cadre moyen':
         cols = [7, 12]  # Columns for "Salaire net moyen par heure pour les cadres moyens féminins" and "Salaire net moyen par heure pour les cadres moyens masculins"
         title = "Comparaison des salaires par région pour les Cadres Moyens"
     elif category == 'Cadre':
-        cols = [6, 11]  # Columns for "Salaire net moyen par heure pour les cadres féminins" and "Salaire net moyen par heure pour un cadre masculin"
+        cols = [6, 11]  # Columns for "Salaire net moyen par heure pour les cadres féminins" and "Salaire net moyen par heure pour un cadre"
         title = "Comparaison des salaires par région pour les Cadres"
     else:
         st.error("Invalid category selected.")
         return
     
     df_simplified = df.iloc[cols].copy().transpose().reset_index()
-    df_simplified.columns = ["Région", f"Salaire net moyen par heure pour une {category}e", f"Salaire net moyen par heure pour un {category} masculin"]
+    df_simplified.columns = ["Région", f"Salaire net moyen par heure pour une {female_form}", f"Salaire net moyen par heure pour un {male_form}"]
     
     df_simplified = df_simplified.iloc[1:]  # Remove the first row which corresponds to "Critères"
     
@@ -418,8 +483,8 @@ def plot_salary_comparison_by_category(df, category):
         y="Salaire",
         color="Catégorie",
         color_discrete_map={
-            f"Salaire net moyen par heure pour une {category}e": "purple",
-            f"Salaire net moyen par heure pour un {category} masculin": "orange"
+            f"Salaire net moyen par heure pour une {female_form}": "purple",
+            f"Salaire net moyen par heure pour un {male_form}": "orange"
         },
         barmode="group",
         title=title,
@@ -427,6 +492,8 @@ def plot_salary_comparison_by_category(df, category):
     )
     
     st.plotly_chart(fig)
+    
+
 
 
 def plot_salary_comparison_by_job_category(df):
@@ -539,5 +606,5 @@ def plot_education_comparison(df):
         title="Comparaison des niveaux d'éducation",
         labels={"Salaire": "Le nombre de personnes"}
     )
-    
+
     st.plotly_chart(fig)
