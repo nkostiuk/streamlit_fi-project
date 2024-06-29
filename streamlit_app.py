@@ -41,7 +41,7 @@ logo_url = "img/dst-logo.png"
 st.sidebar.image(logo_url)
 
 st.sidebar.title("Sommaire")
-pages=["Contexte et objectifs du projet", "Le Jeu De Données", "Data Vizualization", "Préparation des données" ,"Modélisation", "Analyse des Résultats", "Conclusion"]
+pages=["Contexte et objectifs du projet", "Le Jeu De Données", "Data Vizualization", "Préparation des données" ,"Modélisation", "Analyse des Résultats", "Conclusions & Perspectives"]
 page=st.sidebar.radio("Sélectionnez une partie :", pages)
 
 # Add a line before the section
@@ -919,33 +919,96 @@ if page == pages[5]:
     plot_salary_comparison_by_age_group(salary_df_numbers)
 
 
-    ## Test ## 
-
     st.markdown("#### Comparaison des niveaux d'éducation")
     st.markdown(education_html, unsafe_allow_html=True)
     
     plot_education_comparison(education_df_numbers)
 
-     ## Test finished## 
     st.markdown(''' 
     
             
                 ''')
 
-    st.markdown(''' 
-
-    **Résultats:**
-    - Le nombre d'entreprises varie significativement selon la région, avec Paris ayant un nombre beaucoup plus élevé de micro-entreprises comparé à la petite couronne.
-    - Les disparités salariales selon le genre et l'âge sont également marquées, avec des salaires moyens plus élevés à Paris, particulièrement pour les cadres masculins.
-    - Les raisons de ces disparités peuvent être multiples, incluant des facteurs économiques, sociaux et culturels spécifiques à chaque région.
-                
-                
-    Ces analyses montrent des inégalités significatives entre Paris et la petite couronne, mettant en lumière des disparités socio-économiques influencées par divers facteurs régionaux.
-
-    En conclusion, le choix de la méthode KMeans après ACP et des paramètres optimaux a permis une meilleure segmentation des départements selon leurs caractéristiques socio-économiques, fournissant ainsi une base solide pour l'analyse des inégalités régionales.
-                
-                ''', unsafe_allow_html=True)
 
 
 if page == pages[6]: 
-    st.write("### Conclusion")
+    #st.write("### Conclusions & Perspectives")
+    st.markdown("""
+    Les différentes étapes de cette analyse de données initiales, nettoyées, complétées, puis enrichies nous ont permis d’atteindre un résultat éclairant nos convictions premières, mais avec quelques ajustements toutefois et des envies d’aller plus loin dans les corrélations possibles permettant de préconiser des actions tactiques plus concrètes.
+
+    ### Méthodologie
+
+    En effet, nous avons pu utiliser les différentes étapes de Data Analyse étudiées lors de notre parcours DEC23 Continue - DATA_ANALYST à la fois sur : 
+    - La pertinence des Datas
+    - Le pre-processing
+    - La visualisation et les Statistiques 
+
+    Mais également via : 
+    - Le clustering
+    - L'optimisation du modèle
+
+    Cette dernière étape, nous faisant privilégier le choix de la méthode K Means après ACP et des paramètres optimaux, a permis une meilleure segmentation des départements selon leurs caractéristiques socio-économiques, fournissant ainsi une base solide pour l'analyse des inégalités régionales.
+
+    ### Résultats
+
+    #### Vision Nationale
+
+    À l’échelle nationale, nous observons que de nombreuses régions ont des niveaux d'activité économique plus modestes dans le secteur de l’industrie, avec : 
+    - une prévalence de petites et micro-entreprises, 
+    - des salaires moyens inférieurs, 
+    - des différences notables entre les cadres, employés et ouvriers, 
+    - des différences de traitement encore trop présentes entre femmes et hommes. 
+
+    #### Focus sur Paris et la Petite Couronne
+
+    ##### Nombre d'Entreprises
+
+    Le nombre d'entreprises varie significativement selon la région, avec Paris ayant un nombre beaucoup plus élevé de micro-entreprises comparé à la petite couronne.
+
+    ##### Disparités Salariales
+
+    Les disparités salariales selon le genre et l'âge sont également marquées, avec des salaires moyens plus élevés à Paris, particulièrement pour les cadres masculins. À noter également :
+    - Le nombre de femmes et d'hommes titulaires d’un Bac +5 à Paris est quasi-équivalent. 
+    - Les femmes sont aussi nombreuses que les hommes à être très diplômées, mais occupent moins de postes de cadres. 
+    - Lorsqu’elles sont cadres, leur niveau de rémunération est plus faible que leurs homologues masculins, que ce soit à Paris ou plus largement en Petite Couronne.
+
+    ### Conclusions
+
+    Les raisons de ces disparités peuvent être multiples, incluant des facteurs historiques, économiques, sociaux et culturels spécifiques à chaque région.
+
+    Ces analyses montrent globalement des inégalités significatives entre Paris, la Petite Couronne et plus largement un grand nombre de régions françaises. Elles mettent en lumière des disparités socio-économiques influencées par divers facteurs régionaux et parfois politiques, générant de ce fait des déséquilibres qu’il conviendrait de réduire afin de coller avec les enjeux déjà actuels et qui vont s’amplifier devant les défis industriels qui s’ouvrent devant nous et sur lesquels nous allons avoir besoin d’agir vite pour accélérer.
+    """)
+
+    st.write("### Perspectives")
+    st.markdown("""
+    Ce projet nous a permis d’analyser diverses problématiques sous des angles précis dans un temps imparti relativement limité. 
+
+    Nous percevons toutefois des signaux localisés sur des données pas forcément les plus récentes, qu’il existe de fortes disparités régionales voire locales, à la fois sur des dynamiques positives ou négatives qui étaient l’image de l’Industrie avant 2021 en France.
+
+    De nouveaux facteurs sont entrés en jeu depuis mettant à nu : 
+    à la fois : 
+    des menaces (énergétiques, souveraineté, conflits …) 
+    des faiblesses (Perte de compétences, Erosion Main d’œuvre, inégalités salariales, H/F) dans le secteur
+
+    Mais également des signaux positifs : 
+    d’opportunités (Plans France Relance & Réindustrialisation, Durabilité, Technologique IA, IOT, Cyberéscurité, Défense, ...)
+    Des points forts (Énergie décarbonée, Energie renouvelables solaire, éolien, hydraulique, …)
+
+    Une chose est certaine : les données sur cette thématique sont très dynamiques depuis deux ans et il sera évidemment clé de mettre à jour cette analyse à partir de données plus à jour (2022/2023/2024) afin de bien comprendre les transformations profondes qui se sont engagées en accéléré et comment la France de l’Industrie engage sa propre mue.
+
+    Au terme de ce projet, nous pourrions compléter notre champ d’investigation en prenant en compte : 
+
+    - Les fonctionnaires dans la variable “salaires”, puisque nos données concernent uniquement les acteurs du secteur privé,
+    - Et également les densités de population sur les différents territoires 
+
+    En outre, nous pourrions à la fois élargir le champ d’analyse avec uniquement les données à jour : 
+    - Par domaines d’activités 
+    - Par niveaux technologiques attendus 
+
+    Mais également chercher de nouvelles corrélations possibles, par exemple : 
+    - Sur le volet Compétences : Energie renouvelables, Data/IA, IOT, Universal Automation, “Grand Numérique”, …
+    - Sur le volet Égalité Hommes/Femmes : Activité d’attractivité Féminine (Industri’Elles, How Women Rise, Les Ambassadrices techniques, Elles bougent, …)
+    - Sur le Volet Secteurs Industriels : Gigafactories, Nucléaire, Défense, Agro-Alimentaire, Santé, véhicules Electriques, Hydrogène…
+
+    et ainsi être dans une préconisation encore plus approfondie sur les enjeux de main d'œuvre en nombre, en compétences, et localisation prenant en compte toute ou partie des nouvelles clés d’analyses qui pourraient impacter les conclusions / préconisations.
+    """)
